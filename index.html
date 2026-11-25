@@ -16,10 +16,10 @@
 <title>近大 学習ダッシュボード</title>
 <style>
 /* VOICE: 事務的で落ち着いた、学生の「時間割掲示板」
-   IDEA: 学生センターの掲示板に貼られた締切表と、自分の手帳のチェック欄
-   PICTURE: 次の締切までの大きな残り日数と、罫線のしっかりした締切表
-   COLOUR and TYPE: 石の灰 #e7e4df、黒、煉瓦 #c8371e を1点、白い紙面 / Zen Kaku Gothic New + Schibsted Grotesk(数字)
-   LAYOUT: 上に「次の締切」と「今週やること」、下に科目別の進捗、チェックリスト、年表 */
+   IDEA: 学生センターの掲示板の締切表と、科目ごとの綴じ込みファイル
+   PICTURE: 次の締切までの大きな残り日数、科目カードの棚、科目ページの罫線つき予定表
+   COLOUR and TYPE: 石の灰、黒、煉瓦色を1点、白い紙面 / システムの日本語ゴシック
+   LAYOUT: トップ=締切→教科ごとの予定→今週→チェックリスト→年表。科目ページ=見出し→予定→シラバス→回ごとの内容 */
 :root{color-scheme:light dark;
 --bg:light-dark(#e7e4df,#171513);--panel:light-dark(#ffffff,#211f1c);--ink:light-dark(#141210,#ece8e2);
 --mute:light-dark(#5d5850,#a7a097);--rule:light-dark(#cfcac2,#3a3631);--brick:light-dark(#c8371e,#ef6a4f);
@@ -28,11 +28,12 @@
 *{box-sizing:border-box;min-width:0}
 body{margin:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);background:var(--bg);color:var(--ink);font:16px/1.6 "Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;overflow-x:clip}
 .num{font-family:-apple-system,"Helvetica Neue","Hiragino Sans",sans-serif;font-variant-numeric:tabular-nums}
-.band{padding:clamp(20px,3.5vw,48px) max(5vw,16px)}
+.band{padding:clamp(18px,3.5vw,44px) max(5vw,16px)}
 .wrap{max-width:1240px;margin:0 auto}
-header.band{padding-bottom:8px}
-h1{font-size:clamp(28px,4.2vw,44px);line-height:1.1;margin:0 0 6px;text-wrap:balance;font-weight:700}
-h2{font-size:22px;line-height:1.25;margin:0 0 12px;font-weight:700}
+.pt0{padding-top:0}
+h1{font-size:clamp(26px,4.2vw,42px);line-height:1.12;margin:0 0 6px;text-wrap:balance;font-weight:700}
+h2{font-size:21px;line-height:1.25;margin:0 0 12px;font-weight:700}
+h3{font-size:16px;margin:16px 0 6px}
 .sub{color:var(--mute);margin:0;font-size:15px}
 .grid{display:grid;gap:18px;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
 @media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
@@ -45,13 +46,14 @@ h2{font-size:22px;line-height:1.25;margin:0 0 12px;font-weight:700}
 ol.dl{list-style:none;margin:0;padding:0}
 ol.dl li{display:grid;grid-template-columns:5.6em 4.4em minmax(0,1fr);gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);align-items:baseline}
 ol.dl li:last-child{border-bottom:0}
+ol.dl li.past{color:var(--mute)}
 .d{white-space:nowrap;font-weight:700}.left{white-space:nowrap;color:var(--mute);text-align:right;font-size:14px}
 .left.hot{color:var(--brick);font-weight:700}
 .t{font-size:15.5px}.t .s{display:block;color:var(--mute);font-size:13.5px}
 .tag{display:inline-block;font-size:13px;line-height:1.5;padding:0 7px;border-radius:3px;border:1px solid var(--rule);color:var(--mute);margin-left:6px;white-space:nowrap;vertical-align:1px}
 .tag.u{border-color:var(--warn);color:var(--warn)}
 .tag.must{border-color:var(--brick);color:var(--brick)}
-.week h3{font-size:15px;margin:0 0 6px;color:var(--mute);font-weight:500}
+.tag.okt{border-color:var(--ok);color:var(--ok)}
 .chk{list-style:none;margin:0;padding:0}
 .chk li{border-bottom:1px solid var(--rule)}
 .chk li:last-child{border-bottom:0}
@@ -59,163 +61,306 @@ ol.dl li:last-child{border-bottom:0}
 .chk input{appearance:none;flex:none;width:22px;height:22px;margin-top:2px;border:2px solid var(--ink);border-radius:3px;background:var(--panel);display:grid;place-content:center;cursor:pointer}
 .chk input:checked{background:var(--ink)}
 .chk input:checked::after{content:"";width:6px;height:11px;border:solid var(--panel);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
-.chk input:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+.chk input:focus-visible,a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
 .chk .done .tx{color:var(--mute);text-decoration:line-through}
 .chk .due{white-space:nowrap;color:var(--mute);font-size:13.5px;margin-left:6px}
 .note{font-size:13.5px;color:var(--mute);margin:10px 0 0}
-table{width:100%;border-collapse:collapse;font-size:15px}
-th{text-align:left;font-weight:500;color:var(--mute);font-size:13.5px;border-bottom:2px solid var(--ink);padding:6px 8px}
-td{border-bottom:1px solid var(--rule);padding:10px 8px;vertical-align:top}
-td.nm{font-weight:700;white-space:nowrap}
-td.nm span{display:block;font-weight:400;color:var(--mute);font-size:13px}
-.bar{height:8px;background:var(--soft);border:1px solid var(--rule);border-radius:4px;overflow:hidden;margin-top:6px;width:min(160px,100%)}
+.shelf h3{margin:18px 0 8px;font-size:14px;color:var(--mute);font-weight:500}
+.cards{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--ink);border-radius:5px;padding:12px 14px;min-height:44px}
+a.card:hover{border-color:var(--ink)}
+a.card.later{border-left-color:var(--rule)}
+a.card.doneC{border-left-color:var(--ok)}
+.card .cn{font-weight:700;font-size:17px;line-height:1.3}
+.card .cf{color:var(--mute);font-size:13px}
+.card .cx{font-size:14px;margin-top:6px}
+.card .cx b{color:var(--brick);font-weight:700}
+.bar{height:7px;background:var(--soft);border:1px solid var(--rule);border-radius:4px;overflow:hidden;margin-top:8px}
 .bar i{display:block;height:100%;background:var(--ink)}
 .bar.full i{background:var(--ok)}
-.pct{font-size:13px;color:var(--mute);white-space:nowrap}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
 .tabs button{font:inherit;font-size:15px;min-height:44px;padding:0 14px;border:1px solid var(--ink);background:var(--panel);color:var(--ink);border-radius:4px;cursor:pointer}
 .tabs button[aria-pressed=true]{background:var(--ink);color:var(--panel)}
-.tabs button:focus-visible,summary:focus-visible,.btn:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
 .prog{font-size:14px;color:var(--mute);margin:0 0 6px}
 .tl{list-style:none;margin:0;padding:0;columns:2 340px;column-gap:32px}
 .tl li{break-inside:avoid;display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--rule);font-size:15px}
 .tl li.past{color:var(--mute)}
 .tl .m{break-after:avoid;border:0;padding:16px 0 4px;font-weight:700;display:block}
-.unk li{margin:4px 0}
 details{margin-top:6px}summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
-.btn{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border:1px solid var(--ink);background:var(--ink);color:var(--panel);border-radius:4px;cursor:pointer}
+.btn{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border:1px solid var(--ink);background:var(--ink);color:var(--panel);border-radius:4px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.btn.ghost{background:var(--panel);color:var(--ink)}
 footer{color:var(--mute);font-size:13.5px}
-@media(max-width:600px){table{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--rule)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:6.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6em;margin-inline-start:-6.5em;white-space:normal;color:var(--mute);font-size:13px}.stack td:empty{display:none}td.nm{white-space:normal}
-ol.dl li{grid-template-columns:5em 3.8em minmax(0,1fr);gap:8px}.hero{grid-template-columns:minmax(0,1fr)}}
+.back{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px max(5vw,16px);border-bottom:1px solid var(--rule)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--mute);font-size:14.5px;margin-top:4px}
+.steps{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.steps li{border:1px solid var(--rule);border-radius:4px;padding:4px 10px;font-size:14px}
+.steps li.s1{border-color:var(--ok);color:var(--ok)}
+.steps li.su{border-color:var(--warn);color:var(--warn)}
+dl.kv{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px 14px;margin:0}
+dl.kv dt{color:var(--mute);font-size:14px}dl.kv dd{margin:0}
+ul.pl{margin:4px 0 0;padding-left:1.2em}ul.pl li{margin:3px 0}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-weight:500;color:var(--mute);font-size:13.5px;border-bottom:2px solid var(--ink);padding:6px 8px}
+td{border-bottom:1px solid var(--rule);padding:8px;vertical-align:top}
+td.r{white-space:nowrap;font-weight:700;width:4.5em}
+td.w{white-space:nowrap;font-weight:700}
+.sec{margin-top:18px}
+@media(max-width:600px){ol.dl li{grid-template-columns:5em 3.8em minmax(0,1fr);gap:8px}.hero{grid-template-columns:minmax(0,1fr)}dl.kv{grid-template-columns:minmax(0,1fr);gap:2px}dl.kv dd{margin-bottom:8px}
+.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--rule)}.stack td{display:flow-root;border:0;padding:2px 0;padding-inline-start:6em}.stack td::before{content:attr(data-l);float:inline-start;width:5.5em;margin-inline-start:-6em;color:var(--mute);font-size:13px}td.w{white-space:normal}}
+@media(prefers-reduced-motion:no-preference){#subjectView,#homeView{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+[hidden]{display:none!important}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 </head>
 <body>
-<header class="band"><div class="wrap">
+
+<div id="homeView">
+<header class="band" style="padding-bottom:8px"><div class="wrap">
   <h1>近大通信 学習ダッシュボード</h1>
-  <p class="sub">短期大学部 商経科 1年目。<span id="today"></span>(日本時間)。データの確認日は <b>2026年11月26日</b>。「未確認」は資料から分からないところです。</p>
+  <p class="sub">短期大学部 商経科 1年目。<span class="todayTxt"></span>(日本時間)。データの確認日は <b id="asof"></b>。「未確認」は資料から分からないところです。</p>
 </div></header>
 
-<section class="band" style="padding-top:12px"><div class="wrap grid">
+<section class="band" style="padding-top:12px"><div class="wrap panel">
+  <div class="hero" id="hero"></div>
+  <h2>直近の締切と予定</h2>
+  <ol class="dl" id="upcoming"></ol>
+</div></section>
+
+<section class="band pt0"><div class="wrap panel shelf">
+  <h2>教科ごとの予定</h2>
+  <p class="sub">科目を押すと、シラバスの要点、レポート設題、回ごとの内容、その科目の学習スケジュールが見られます。</p>
+  <div id="shelf"></div>
+</div></section>
+
+<section class="band pt0"><div class="wrap grid">
   <div class="panel">
-    <div class="hero" id="hero"></div>
-    <h2>直近の締切と予定</h2>
-    <ol class="dl" id="upcoming"></ol>
-  </div>
-  <div class="panel week">
-    <h2 id="weekTitle">今週やること</h2>
-    <h3 id="weekRange"></h3>
+    <h2>今週やること</h2>
+    <p class="sub" id="weekRange"></p>
     <ul class="chk" id="weekList"></ul>
     <p class="note" id="weekNote"></p>
   </div>
+  <div class="panel">
+    <h2>タスクのチェックリスト</h2>
+    <p class="prog" id="prog"></p>
+    <div class="tabs" id="tabs"></div>
+    <ul class="chk" id="tasks"></ul>
+  </div>
 </div></section>
 
-<section class="band" style="padding-top:0"><div class="wrap panel">
-  <h2>科目別の進み具合</h2>
-  <table class="stack"><thead><tr><th>科目</th><th>いまの状況</th><th>進み具合</th><th>次の期限</th></tr></thead><tbody id="subjects"></tbody></table>
-  <p class="note">進み具合は、手順(視聴・レポート・試験など)のうち終わった数の割合です。未確認の手順は終わっていない扱いにしています。</p>
-</div></section>
-
-<section class="band" style="padding-top:0"><div class="wrap panel">
-  <h2>タスクのチェックリスト</h2>
-  <p class="prog" id="prog"></p>
-  <div class="tabs" id="tabs"></div>
-  <ul class="chk" id="tasks"></ul>
-  <p class="note">チェックはこの端末のブラウザにだけ保存されます(スマホとPCでは別々)。両方で合わせたいときは、終わったことをチャットで伝えてもらえれば、ページ側の初期値を更新します。</p>
-</div></section>
-
-<section class="band" style="padding-top:0"><div class="wrap panel">
+<section class="band pt0"><div class="wrap panel">
   <h2>2027年3月までの年表</h2>
   <ul class="tl" id="timeline"></ul>
 </div></section>
 
-<section class="band" style="padding-top:0"><div class="wrap panel">
+<section class="band pt0"><div class="wrap panel">
   <h2>確認してほしいこと(未確認)</h2>
-  <ul class="unk" id="unknowns"></ul>
+  <ul class="pl" id="unknowns"></ul>
   <details>
-    <summary>このページの更新のしかた</summary>
-    <p>予定・科目・タスクは、ページの中の4つの表(DEADLINES、SUBJECTS、TASKS、WEEKS)にまとめてあります。日付は「2026-12-15」の形です。一番かんたんなのは、チャットで「経営学総論のレポートを出した」「マクロ②は第6回まで見た」のように伝えてもらうことで、こちらで表を直して同じリンクのまま更新します。</p>
+    <summary>このアプリの更新のしかた</summary>
+    <p>終わったことや分かったことを、チャットで「マクロ②は第6回まで見た」のように伝えてもらえれば、こちらで直します。同じアイコンのまま新しい内容になります(反映されないときは、アプリを一度閉じて開き直してください)。チェックはこのiPhoneの中にだけ保存されます。</p>
     <button class="btn" id="copy" type="button">いまの状況を文章でコピー</button> <span id="copied" class="note"></span>
   </details>
 </div></section>
 
-<footer class="band" style="padding-top:0"><div class="wrap">出典: 学習計画_1年目(11/13改訂)、年間行事予定表 令和8年度、学習の手引き、Googleカレンダー、ドライブ近大フォルダの読み込み報告、各科目のレポート作業。大学の行事で日程が変わることがあるので、最終的には KULeD と梅信で確認してください。</div></footer>
+<footer class="band pt0"><div class="wrap">出典: 学習計画_1年目(11/13改訂)、年間行事予定表 令和8年度、学習の手引き、シラバス一覧(2025年12月時点)とWEBシラバス、レポート設題集、各授業の資料まとめ。日程は変わることがあるので、最終的には KULeD と梅信で確認してください。</div></footer>
+</div>
+
+<div id="subjectView" hidden>
+  <nav class="back"><div class="wrap"><a class="btn ghost" href="#">← 一覧に戻る</a></div></nav>
+  <div id="subjectBody"></div>
+</div>
 
 <script>
 {
-/* ===== ここから下の4つの表を直せば更新できます ===== */
+/* ===== ここから下の表を直せば更新できます ===== */
 const AS_OF='2026-11-26';
-// kind: exam=試験, due=提出・申込の締切, event=行事・発表。to=期間の終わり。must=重要
+// sub: 関係する科目のid
 const DEADLINES=[
+ {d:'2026-11-22',t:'科目終末試験 午前: 商学総論①',s:'10:30〜11:20(準備10:10〜)。記述式50分・教科書を見ながら解答可',kind:'exam',sub:['shoso1']},
+ {d:'2026-11-22',t:'科目終末試験 午後: マクロ経済学①',s:'13:30〜14:20(準備13:10〜)。記述式50分',kind:'exam',sub:['macro1']},
  {d:'2026-11-25',to:'2026-12-01',t:'12月終末試験の受付',s:'12月期は受験しない計画',kind:'event'},
- {d:'2026-11-28',t:'商品学② スクーリング3日目 + 単位修了試験',s:'9:00〜17:30 東大阪キャンパス。予習ノート第11〜15回を持参',kind:'exam',must:1},
- {d:'2026-12-15',t:'商品学②(オンデマンド)課題レポート 1回目の目標',s:'提出版は11/24に完成。提出したかは未確認',kind:'due',u:1},
- {d:'2026-12-16',to:'2026-12-22',t:'1月終末試験の申込(経営学総論)',s:'KULeDで申込',kind:'due',must:1},
- {d:'2026-12-17',t:'成績発表(11月終末試験・商品学②スクーリング)',s:'商学総論①・マクロ経済学①の結果',kind:'event'},
- {d:'2026-12-18',t:'経営学総論 レポート提出の目標',s:'設問1・2 各2,000字。1/17受験には12/22までの提出が必要',kind:'due',must:1},
+ {d:'2026-11-28',t:'商品学② スクーリング3日目 + 単位修了試験',s:'9:00〜17:30 東大阪キャンパス。試験は16:30〜17:30',kind:'exam',must:1,sub:['shohin2s']},
+ {d:'2026-11-30',t:'商学総論② 課題レポート 1回目の目安',s:'提出したかは未確認',kind:'due',u:1,sub:['shoso2']},
+ {d:'2026-12-15',t:'商品学②(オンデマンド)課題レポート 1回目の目標',s:'提出版は11/24に完成。提出したかは未確認',kind:'due',u:1,sub:['shohin2o']},
+ {d:'2026-12-16',to:'2026-12-22',t:'1月終末試験の申込(経営学総論)',s:'KULeDで申込',kind:'due',must:1,sub:['keiei']},
+ {d:'2026-12-17',t:'成績発表(11月終末試験・商品学②スクーリング)',s:'商学総論①・マクロ経済学①・商品学②の結果',kind:'event',sub:['shoso1','macro1','shohin2s']},
+ {d:'2026-12-18',t:'経営学総論 レポート提出の目標',s:'設問1・2 各2,000字。1/17受験には12/22までの提出が必要',kind:'due',must:1,sub:['keiei']},
  {d:'2026-12-23',to:'2027-01-05',t:'学生センター 年末年始の閉室',s:'問い合わせは12/22まで',kind:'event'},
  {d:'2027-01-09',t:'WEB学習相談会',s:'任意参加',kind:'event'},
  {d:'2027-01-14',t:'成績発表(12月終末)',kind:'event'},
- {d:'2027-01-17',t:'科目終末試験 午前: 経営学総論',kind:'exam',must:1},
- {d:'2027-01-20',t:'オンデマンド授業 教員への質問の締切',kind:'due'},
- {d:'2027-01-20',to:'2027-01-26',t:'2月終末試験の申込(経済学)',kind:'due'},
- {d:'2027-01-24',t:'オンデマンド課題レポートの最終締切',s:'商学総論②・商品学②。合格が単位修了試験の受験条件',kind:'due',must:1},
- {d:'2027-01-25',to:'2027-01-31',t:'オンデマンド単位修了試験(5件)',s:'英語総合×2・マクロ②・商学総論②・商品学②。各60分、最終日は22:59までに開始',kind:'exam',must:1},
- {d:'2027-01-26',t:'経済学 レポート提出(2/7受験の条件)',s:'間に合わなければ3/7受験にずらす',kind:'due'},
- {d:'2027-02-07',t:'科目終末試験 午後: 経済学',kind:'exam'},
- {d:'2027-02-16',t:'成績発表(1月終末)',kind:'event'},
- {d:'2027-02-17',t:'成績発表(後期オンデマンド)',s:'商品学①への振替もここで確定',kind:'event'},
- {d:'2027-02-17',to:'2027-02-23',t:'3月終末試験の申込(化学)',kind:'due'},
- {d:'2027-03-07',t:'科目終末試験 午後: 化学(科学方法論)',kind:'exam'},
- {d:'2027-03-11',t:'成績発表(2月終末)',kind:'event'}
+ {d:'2027-01-17',t:'科目終末試験 午前: 経営学総論',kind:'exam',must:1,sub:['keiei']},
+ {d:'2027-01-20',t:'オンデマンド授業 教員への質問の締切',kind:'due',sub:['shoso2','shohin2o','macro2','engA','engB']},
+ {d:'2027-01-20',to:'2027-01-26',t:'2月終末試験の申込(経済学)',kind:'due',sub:['keizai']},
+ {d:'2027-01-24',t:'オンデマンド課題レポートの最終締切',s:'商学総論②・商品学②。合格が単位修了試験の受験条件',kind:'due',must:1,sub:['shoso2','shohin2o']},
+ {d:'2027-01-25',to:'2027-01-31',t:'オンデマンド単位修了試験(5件)',s:'各60分・オンライン。最終日は22:59までに開始',kind:'exam',must:1,sub:['shoso2','shohin2o','macro2','engA','engB']},
+ {d:'2027-01-26',t:'経済学 レポート提出(2/7受験の条件)',s:'間に合わなければ3/7受験にずらす',kind:'due',sub:['keizai']},
+ {d:'2027-02-07',t:'科目終末試験 午後: 経済学',kind:'exam',sub:['keizai']},
+ {d:'2027-02-16',t:'成績発表(1月終末)',kind:'event',sub:['keiei']},
+ {d:'2027-02-17',t:'成績発表(後期オンデマンド)',s:'商品学①への振替もここで確定',kind:'event',sub:['shoso2','shohin2o','macro2','engA','engB','shohin1']},
+ {d:'2027-02-17',to:'2027-02-23',t:'3月終末試験の申込(化学)',kind:'due',sub:['kagaku']},
+ {d:'2027-03-07',t:'科目終末試験 午後: 化学(科学方法論)',kind:'exam',sub:['kagaku']},
+ {d:'2027-03-11',t:'成績発表(2月終末)',kind:'event',sub:['keizai']}
 ];
-// steps: [名前, 状態] 状態は 1=済み 0=まだ 'u'=未確認
+
+// 科目。term: now=今学期 / next=来年以降。steps: 1=済み 0=まだ 'u'=未確認
+// syl: シラバスの要点、rep: レポート、lessons: 回ごとの内容、plan: この科目の学習スケジュール
 const SUBJECTS=[
- {n:'商学総論①',f:'テキスト 2103',st:'レポート提出済み(添削結果は未確認)。11/22に試験',next:'12/17 成績発表',steps:[['レポート提出',1],['添削で合格','u'],['11/22 試験を受験','u'],['合格',0]]},
- {n:'マクロ経済学①',f:'テキスト 2101',st:'レポート合格。11/22に試験',next:'12/17 成績発表',steps:[['レポート提出',1],['レポート合格',1],['11/22 試験を受験','u'],['合格',0]]},
- {n:'商品学②',f:'スクーリング 朱先生',st:'1日目・2日目の資料整理済み。予習ノート15回分完成',next:'11/28 3日目 + 試験',steps:[['1日目 11/7',1],['2日目 11/14',1],['予習ノート 第11〜15回',1],['3日目と試験 11/28',0],['合格(12/17)',0]]},
- {n:'商学総論②',f:'オンデマンド 井田先生',st:'全15回視聴済み。レポート(鯖江の眼鏡フレーム)は11/13に完成',next:'1/25〜31 単位修了試験',steps:[['全15回 視聴',1],['確認テスト全合格','u'],['レポート提出','u'],['レポート合格','u'],['単位修了試験',0]]},
- {n:'商品学②',f:'オンデマンド 井田先生',st:'全15回視聴・確認テスト完了(11/19)。レポート(偏光サングラス)提出版が11/24に完成',next:'1/24 レポート最終、1/25〜31 試験',steps:[['全15回 視聴',1],['確認テスト',1],['レポート提出','u'],['レポート合格',0],['メディア授業アンケート','u'],['単位修了試験',0]]},
- {n:'マクロ経済学②',f:'オンデマンド 室田先生',st:'講義資料は全15回ぶん整理済み(11/15)。何回まで見たかは未確認',next:'1/25〜31 単位修了試験',steps:[['講義資料の整理',1],['全15回 視聴','u'],['単位修了試験',0]]},
- {n:'英語総合A',f:'オンデマンド 大村先生',st:'教科書あり。12月中旬から開始の計画',next:'1/25〜31 単位修了試験',steps:[['教科書の入手',1],['15ユニット 視聴','u'],['単位修了試験',0]]},
- {n:'英語総合B',f:'オンデマンド 藤井先生',st:'教科書あり。確認テストは初回の点数が成績の30%',next:'1/25〜31 単位修了試験',steps:[['教科書の入手',1],['15ユニット 視聴と確認テスト','u'],['単位修了試験',0]]},
- {n:'経営学総論',f:'テキスト 2105・4単位',st:'11/23から着手の計画。進み具合は未確認',next:'12/18 レポート提出目標',steps:[['設題確認と参考書の手配','u'],['通読',0],['レポート提出',0],['1/17 試験',0]]},
- {n:'経済学',f:'テキスト・4単位',st:'1月から着手の計画',next:'1/26 レポート(2/7受験の場合)',steps:[['レポート提出',0],['2/7 試験',0]]},
- {n:'化学(科学方法論)',f:'テキスト・4単位',st:'2月から着手の計画',next:'3/7 試験',steps:[['レポート提出',0],['3/7 試験',0]]}
+ {id:'shoso1',n:'商学総論①',code:'2103',f:'テキスト授業',cr:2,term:'now',who:'教科書・添削: 谷内正往',
+  st:'レポート提出済み(添削結果は未確認)。11/22に試験',next:'12/17 成績発表',
+  steps:[['レポート提出',1],['添削で合格','u'],['11/22 試験を受験','u'],['合格',0]],
+  syl:{goal:'商業・マーケティング・流通の基礎概念を理解する。特に商業とマーケティングの違い、流通政策の役割。論述試験の答え方を身につける',text:'谷内正往『商学総論(商業学)』近畿大学通信教育部、2023',grade:'レポートと科目終末試験の両方に合格',notes:['「数行で終わる問題や設題はない」。的確に答えれば自然に一定の分量になる','生成AIで解答を作って写すのは不可。自分の文章のチェックに使うのは可','専門用語は本によって違うので、まず教科書の用語を確認してから他の本を読む','流通企業のニュースを普段からチェックすると理解に役立つ','参考文献: 『流通と消費者』五絃舎、『マーケティングの力』有斐閣、『1からの流通システム』碩学舎']},
+  rep:{theme:'流通系列化とバイイングパワーについて述べる。「販売の個別化」「販売の社会化」を必ず入れる',len:'2,000字を超えること(上限2,100字)・参考文献の記入が必要',notes:['提出したレポート: 流通系列化とバイイングパワー(10月提出)']},
+  lessons:[['第1章','商業・流通とは何か'],['第2章','商業のあゆみ'],['第3章','資本主義と商業・マーケティング(販売の社会化と個別化)'],['第4章','流通機能'],['第5章','卸売業1(ホールの卸売存立根拠論、問屋無用論)'],['第6章','卸売業2(商社、卸売市場)'],['第7章','卸売業3(卸売業の多様化)'],['第8章','小売業1(業種と業態、小売の輪)'],['第9章','小売業2(百貨店)'],['第10章','小売業3(スーパーマーケット)'],['第11章','小売業4(コンビニエンス・ストア)'],['第12章','小売経営(立地と接客)'],['第13章','日本の流通革命'],['第14章','流通系列化とバイイング・パワー'],['第15章','製販同盟とプライベート・ブランド'],['第16章','流通政策']],
+  plan:[['10/15〜10/29','教科書の通読、レポート作成・提出',1],['11/16〜11/21','試験対策(想定論点を50分で書く練習)',1],['11/22','科目終末試験(午前)','u'],['12/17','成績発表。不合格なら次の受験月を決める',0]]},
+
+ {id:'macro1',n:'マクロ経済学①',code:'2101',f:'テキスト授業',cr:2,term:'now',who:'教科書: 入江啓彰',
+  st:'レポート合格。11/22に試験',next:'12/17 成績発表',
+  steps:[['レポート提出',1],['レポート合格',1],['11/22 試験を受験','u'],['合格',0]],
+  syl:{goal:'マクロ経済学の基本的な知識と考え方を身につけ、新聞の簡単な経済記事を理解できるようになる',text:'入江啓彰『マクロ経済学』近畿大学通信教育部(シラバスの表記は旧著者のまま)',grade:'レポートと科目終末試験の両方に合格',notes:['必ず最初から読む。第1章がGDP(レポートのテーマ)','GDPの決定(第2章)が中心。分かるまで読む','「消費は所得に依存する、は本当か?」のように自分の経験やデータで確かめる']},
+  rep:{theme:'GDP(または国民所得)について説明する。図からでも式からでも可',len:'2,000字・参考文献は不要',notes:['評価: 分かりやすさ、説明の正確さ、図や式の理解度','「先生になったつもりで、分かりやすく書く」']},
+  lessons:[['序章','マクロ経済学を学ぶ意味'],['第1章','国民経済計算: GDPで経済を測る'],['第2章','財市場の分析(45度線分析、乗数)'],['第3章','資産市場の分析(貨幣、金融政策)'],['第4章','IS-LM分析'],['第5章','物価とマクロ経済: AD-AS'],['第6章','雇用とマクロ経済: 失業・インフレ'],['第7章','開放経済'],['終章','総整理']],
+  plan:[['10月〜11/4','通読、レポート作成・提出(合格)',1],['11/16〜11/21','練習問題を手で解き直す。マクロ②の第1〜4回で復習',1],['11/22','科目終末試験(午後)','u'],['12/17','成績発表',0]]},
+
+ {id:'shohin2s',n:'商品学②',code:'3502',f:'スクーリング(対面)',cr:2,term:'now',who:'朱洪双 先生',
+  st:'1日目・2日目の資料整理済み。予習ノート15回分が完成',next:'11/28 3日目 + 試験',
+  steps:[['1日目 11/7',1],['2日目 11/14',1],['予習ノート 第11〜15回',1],['3日目と試験 11/28',0],['合格(12/17)',0]],
+  syl:{goal:'商品学の基礎(商品の定義と分類、品質と規格、デザイン、企業と商品、消費者と商品)を学ぶ',text:'井田泰人・池田大輔・朱洪双『商品学』近畿大学通信教育部、2026(手元にあり)',grade:'単位修了試験70%、課題レポート30%。3日間すべて出席が必須(遅刻・早退・欠席は不可)',notes:['事前提出の課題はない。各回30分の予習ノートで準備','授業はパワーポイント。配られた資料と自分のメモをノートにまとめる','先に合格した方が商品学②、後から合格した方が商品学①に振り替えられる(オンデマンドの商品学②と両方受講中)']},
+  rep:{theme:'授業中に指示',len:'成績の30%',notes:[]},
+  lessons:[['第1回','商品とは何か'],['第2回','商品の分類'],['第3回','商品学の歴史'],['第4回','商品の評価と標準化'],['第5回','商品デザインとパッケージ'],['第6回','商品のライフサイクル'],['第7回','企業と商品①(製品・STP)'],['第8回','企業と商品②(価格)'],['第9回','企業と商品③(プロモーション)'],['第10回','企業と商品④(流通チャネル)'],['第11回','消費者の欲求と心理'],['第12回','消費者問題と消費者主権'],['第13回','消費者保護政策とPL法'],['第14回','商品と環境・商品と社会'],['第15回','全体のまとめ']],
+  plan:[['11/7(土)','1日目(第1〜5回)',1],['11/14(土)','2日目(第6〜10回)',1],['11/23〜11/27','予習ノート第11〜15回、資料③〜⑧の見直し',1],['11/28(土)','3日目(第11〜15回)と単位修了試験 16:30〜17:30',0],['12/17','成績発表',0]]},
+
+ {id:'shoso2',n:'商学総論②',code:'2104',f:'オンデマンド授業',cr:2,term:'now',who:'井田泰人 先生',
+  st:'全15回視聴済み(11/3〜11/11)。レポート「鯖江産眼鏡フレームの流通経路」は11/13に完成',next:'1/24 レポート最終、1/25〜31 試験',
+  steps:[['全15回 視聴',1],['確認テスト全合格','u'],['レポート提出','u'],['レポート合格','u'],['単位修了試験',0]],
+  syl:{goal:'流通の機能、卸売・小売、日本の流通機構の特質と流通政策を学ぶ',text:'井田泰人『商学の基本を学ぶ15講』晃洋書房、2014(購入済み)',grade:'単位修了試験50%、課題レポート50%。試験を受けるにはレポートの合格が必要',notes:['視聴時間を短縮すると大幅に減点(倍速しない)','試験・課題のフィードバックは特に実施しない','参考文献: 久保村隆祐『商学通論 9訂版』同文舘出版']},
+  rep:{theme:'関心のある商品が、どのような流通経路をたどっているかを調べてまとめる',len:'2,000字程度・Word。インターネット不可、文献をもとに書く',notes:['全講義の視聴と全確認テストの合格後に提出できる','添削の目安: 11/30、12/15、12/31、1/10、1/15(最終1/24)']},
+  lessons:[['第1回','経済の発展と懸隔'],['第2回','流通の機能と担い手'],['第3回','流通の捉え方と流通業者の役割'],['第4回','流通の規定要因'],['第5回','卸売業者・問屋・代理商・仲立人'],['第6回','卸売市場・農協・販売会社'],['第7回','卸売業者の存在意義(ホールの2原理)'],['第8回','小売業者①(百貨店・スーパー・コンビニ)'],['第9回','小売業者②(多様な業態と情報化)'],['第10回','日本の流通機構の特質①(〜1985年)'],['第11回','日本の流通機構の特質②(1985年〜)'],['第12回','日本の流通機構の問題点'],['第13回','流通政策①(百貨店法)'],['第14回','流通政策②(大店法)'],['第15回','流通政策③(大店立地法)']],
+  plan:[['11/3〜11/11','全15回視聴',1],['11/11〜11/13','課題レポート作成',1],['11/30ごろ','レポート1回目を提出','u'],['12月〜1/15','返却を見て書き直し(返却は翌月20日まで)',0],['1/18〜1/24','単位修了試験の復習',0],['1/25〜1/31','単位修了試験(60分)',0]]},
+
+ {id:'shohin2o',n:'商品学②',code:'3502',f:'オンデマンド授業',cr:2,term:'now',who:'井田泰人 先生',
+  st:'全15回視聴・確認テスト完了(11/19)。レポート「偏光サングラスの開発と販売」提出版が11/24に完成',next:'1/24 レポート最終、1/25〜31 試験',
+  steps:[['全15回 視聴',1],['確認テスト',1],['レポート提出','u'],['レポート合格',0],['メディア授業アンケート','u'],['単位修了試験',0]],
+  syl:{goal:'商品学の歴史、商品の定義と分類、品質と規格、企業と商品、消費者と商品を学ぶ',text:'井田泰人・池田大輔・朱洪双『商品学』近畿大学通信教育部、2026(購入不要)',grade:'単位修了試験50%、課題レポート50%。試験を受けるにはレポートの合格が必要',notes:['視聴時間を短縮すると大幅に減点','試験で覚える指定: コープランドの3分類、PLCの時期パターン、シュンペーターの革新5項目、STP、マズロー、スライド見出しの法律名・事件名、JISとISO','人物は重要人物の名前と説の概要。年号や細かい数値は丸暗記不要','参考文献: 『現代商品論 第2版』『商品学と商品戦略』白桃書房、『商品学読本 第2版』東洋経済新報社']},
+  rep:{theme:'関心のある商品について、その開発・販売がどのように行われているかを調べてまとめる',len:'2,000字程度・Word。インターネット不可、文献をもとに書く',notes:['添削の目安: 12/15、12/31、1/10、1/15(最終1/24)']},
+  lessons:[['第1回','商品学の起源と自然科学的商品学'],['第2回','日本の商品学①(小原・上坂論争)'],['第3回','日本の商品学②'],['第4回','商品の定義と分類(コープランドの3分類)'],['第5回','商品学の研究対象'],['第6回','品質①'],['第7回','品質②'],['第8回','規格(JIS・ISO)'],['第9回','プロダクト・ライフ・サイクル'],['第10回','革新(イノベーション)'],['第11回','ブランド'],['第12回','製品計画(STP、プッシュとプル)'],['第13回','商品計画(POS、SPA)'],['第14回','消費者の欲求'],['第15回','消費者問題・消費者保護政策とまとめ']],
+  plan:[['〜11/19','全15回視聴と確認テスト',1],['11/14〜11/24','課題レポート作成',1],['12/15まで','レポート1回目を提出','u'],['12月〜1/15','返却を見て書き直し',0],['試験前まで','メディア授業アンケート','u'],['1/25〜1/31','単位修了試験(60分)',0]]},
+
+ {id:'macro2',n:'マクロ経済学②',code:'2102',f:'オンデマンド授業',cr:2,term:'now',who:'室田龍一郎 先生',
+  st:'講義資料は全15回ぶん整理済み(11/15)。何回まで見たかは未確認',next:'1/25〜31 単位修了試験',
+  steps:[['講義資料の整理',1],['全15回 視聴と確認テスト','u'],['単位修了試験',0]],
+  syl:{goal:'GDPなどの基本概念から、45度線分析、IS-LM分析までの入門マクロ経済学',text:'指定なし(講義資料を事前に読む)',grade:'単位修了試験100%(60分・オンライン・1回のみ)。課題レポートなし',notes:['15回すべての動画と確認テスト(全問正解で次へ)を終えると試験を受けられる','途中でやめるときは「中断」ボタン。ブラウザの戻るや×で閉じると受講時間が記録されない','単位修了試験の開始時に学生証の認証コードを入力する','試験の出題形式は未確認']},
+  rep:null,
+  lessons:[['第1回','マクロ経済学の概要、名目GDP、日本のGDPの推移'],['第2回','GDPの内訳と問題点、実質GDP'],['第3回','GDPデフレーター、消費者物価指数'],['第4回','国富、失業率と有効求人倍率、株価'],['第5回','ケインズ経済学と新古典派、短期と長期'],['第6回','消費、投資'],['第7回','割引現在価値、政府支出、純輸出'],['第8回','45度線分析とGDPの決定'],['第9回','政府支出増加の効果、乗数効果'],['第10回','無限等比数列の和、減税の効果'],['第11回','均衡財政乗数、輸入と乗数、乗数効果の問題点'],['第12回','所得再分配、倹約のパラドックス'],['第13回','IS曲線、貨幣'],['第14回','貨幣需要と供給、LM曲線、IS-LMの均衡'],['第15回','財政政策・金融政策の効果、その後のマクロ経済学']],
+  plan:[['11/11〜','視聴開始','u'],['11/30〜1/10','週2〜3本ずつ。前半(第1〜7回)は基本概念、後半(第8〜15回)は計算が多い',0],['1/18〜1/24','回ごとの「押さえるポイント」で復習',0],['1/25〜1/31','単位修了試験(60分)',0]]},
+
+ {id:'engA',n:'英語総合A',code:'7702',f:'オンデマンド授業',cr:1,term:'now',who:'大村吉弘 先生',
+  st:'教科書あり。12月中旬から開始の計画(始めたかは未確認)',next:'1/25〜31 単位修了試験',
+  steps:[['教科書の入手',1],['15ユニット 視聴','u'],['単位修了試験',0]],
+  syl:{goal:'英語総合(15ユニット)',text:'角山照彦『Let\'s Read Aloud & Learn English: Going Abroad(音読で学ぶ基礎英語 海外生活編)』成美堂、2021',grade:'単位修了試験100%。課題レポートなし',notes:['倍速視聴は実際の視聴時間で記録され、極端に短いと単位が認められないことがある','英語総合は別の先生で2つ受けて2単位(Bと合わせて外国語の要件を満たす)']},
+  rep:null,lessons:null,lessonsNote:'ユニットごとの内容はまだ資料にありません(未確認)。教科書の目次で確認できます。',
+  plan:[['12/14ごろ〜','1日1〜2ユニット',0],['1/10まで','15ユニットを最後まで',0],['1/25〜1/31','単位修了試験(60分)',0]]},
+
+ {id:'engB',n:'英語総合B',code:'7702',f:'オンデマンド授業',cr:1,term:'now',who:'藤井爽 先生',
+  st:'教科書あり。12月中旬から開始の計画(始めたかは未確認)',next:'1/25〜31 単位修了試験',
+  steps:[['教科書の入手',1],['15ユニット 視聴と確認テスト','u'],['単位修了試験',0]],
+  syl:{goal:'英語総合(15ユニット)',text:'角山照彦『Let\'s Read Aloud & Learn English: On Campus(音読で学ぶ基礎英語 キャンパス編)』成美堂、2019',grade:'確認テスト(初回受験時の点数)30% + 単位修了試験70%。課題レポートなし',notes:['確認テストは初回の点数が成績に入るので、各ユニットは予習してから視聴し、1回目から本気で受ける']},
+  rep:null,lessons:null,lessonsNote:'ユニットごとの内容はまだ資料にありません(未確認)。教科書の目次で確認できます。',
+  plan:[['12/14ごろ〜','1日1〜2ユニット。予習してから視聴',0],['1/10まで','15ユニットを最後まで',0],['1/25〜1/31','単位修了試験(60分)',0]]},
+
+ {id:'keiei',n:'経営学総論',code:'2105',f:'テキスト授業',cr:4,term:'now',who:'教科書: 吉田忠彦',
+  st:'11/23から着手の計画。進み具合は未確認',next:'12/18 レポート提出目標',
+  steps:[['設題確認と参考書の手配','u'],['通読',0],['レポート提出',0],['レポート合格',0],['1/17 試験',0]],
+  syl:{goal:'企業の組織構造、経営環境、環境への適応、戦略目標の設定と達成の仕組みを学ぶ',text:'吉田忠彦 著の教科書(シラバスの堀田和宏 表記は古い情報)',grade:'レポートと科目終末試験の両方に合格',notes:['設問と違う問題への解答は、どれほど良くても不合格','設問ごとに「サブノート」を作る。教科書を繰り返し熟読する','参考文献: 『経営管理論』中央経済社、『経営管理』有斐閣、『よくわかる現代経営 第7版』ミネルヴァ書房']},
+  rep:{theme:'設問1: 意思決定の諸段階を簡潔に説明する / 設問2: 非営利組織(NPOなど)の定義と存在理由を簡潔に説明する',len:'4,000字(各2,000字)・参考文献は書籍のみ(ネット不可)。著者名、書名、発行所、ページまで書く',notes:['参考書: 『経営管理』『非営利組織論』有斐閣アルマ','書く前にKULeDの設題画面で設題を確認']},
+  lessons:null,lessonsNote:'章ごとの内容はまだまとめていません。',
+  plan:[['11/23〜11/30','KULeDで設題を確認し、参考書を手配','u'],['11/29〜12/6','通読、設問1(意思決定)の精読とサブノート',0],['12/7〜12/13','設問2(非営利組織)の精読、構成と下書き',0],['12/14〜12/18','推敲して提出',0],['12/16〜12/22','1月終末試験に申込',0],['1/4〜1/16','想定論点を50分で書く練習',0],['1/17(日)','科目終末試験(午前)',0]]},
+
+ {id:'keizai',n:'経済学(日本社会システム論)',code:'1304',f:'テキスト授業',cr:4,term:'now',who:'教科書: 三田村けんいち',
+  st:'1月から着手の計画',next:'1/26 レポート(2/7受験の場合)',
+  steps:[['レポート提出',0],['レポート合格',0],['2/7 試験',0]],
+  syl:{goal:'経済学特有の「考え方」を身につけ、世の中の現象を読み解けるようにする',text:'三田村けんいち 著の教科書',grade:'レポートと科目終末試験の両方に合格',notes:['1回目は通読 → 2回目以降は精読 → 演習問題を解く → 解けなかった所を読み直す → 身の回りの題材で問題を作る','新聞を読む(経済記事以外も)']},
+  rep:{theme:'設問1: 地域間格差の現状を分析し、自分なりの処方箋を述べる / 設問2: 今いちばん関心のある問題を1つ選び、なぜ生じているかを経済学的に考察する',len:'4,000字・参考文献の記入が必要',notes:['設題1つにつき関連する学術文献を最低1つ読む','設問2はEC業界の問題(物流費、プラットフォーム手数料など)が書きやすい']},
+  lessons:null,lessonsNote:'章ごとの内容はまだまとめていません。',
+  plan:[['1/11〜1/17','設題確認と通読',0],['1/18〜1/24','精読と演習問題',0],['1/26まで','レポート提出(難しければ3/7受験に変更)',0],['1/20〜1/26','2月終末試験に申込',0],['2/7(日)','科目終末試験(午後)',0]]},
+
+ {id:'kagaku',n:'化学(科学方法論)',code:'1403',f:'テキスト授業',cr:4,term:'now',who:'教科書: Waldron 著・竹内敬人 訳',
+  st:'2月から着手の計画',next:'3/7 試験',
+  steps:[['レポート提出',0],['レポート合格',0],['3/7 試験',0]],
+  syl:{goal:'元素の構造と周期性、化学結合、物質の状態、化学反応を基本に、エネルギー問題・環境問題まで',text:'『教養としての化学入門 第2版』化学同人',grade:'レポートと科目終末試験の両方に合格',notes:['分からない所は参考文献やネットで補う','参考文献: 『標準基礎化学』裳華房、『大学生のための例題で学ぶ化学入門』共立出版']},
+  rep:{theme:'小問6つ: エンタルピー / 理想気体と実在気体 / カーボンニュートラル / 実用電池か燃料電池 / 水をきれいにする方法3つ以上 / 地球温暖化の原因物質と対策',len:'4,000字(1問約650字)・参考文献の記入が必要',notes:['小問形式なので1問ずつ進められる']},
+  lessons:null,lessonsNote:'章ごとの内容はまだまとめていません。',
+  plan:[['2月','1問ずつレポートを書いて提出',0],['2/17〜2/23','3月終末試験に申込',0],['3/7(日)','科目終末試験(午後)',0]]},
+
+ {id:'shakai',n:'社会学(国際社会システム論)',code:'1302',f:'テキスト授業',cr:4,term:'next',who:'教科書: 髙橋玲',
+  st:'3月から着手の計画',next:'5月期 試験(日付は次年度の予定表で確認)',
+  steps:[['レポート提出',0],['5月期 試験',0]],
+  syl:{goal:'現代社会の問題を多角的に理解し、グローバル化の中で「差異」が多層化する過程を知る',text:'髙橋玲『国際社会システム論(社会学)』',grade:'レポートと科目終末試験の両方に合格',notes:['字数は1文字でも不足すると不可(レポートも試験も)','「客観的事実」と「自分の意見」を段落で分ける','疑問はWEB学修質疑で(回答まで約3週間)']},
+  rep:{theme:'(1)ここ1年の「グローバリズム」のニュースの概要(1,000字)(2)「グローバリズム」の概念の要約(1,000字)(3)今後の展望を自分の言葉で(2,000字)',len:'4,000字',notes:['(3)は何も見ずに自分で書く。生成AIの文章も使わない']},
+  lessons:null,lessonsNote:'',
+  plan:[['3月','通読、キーワードノート、疑問は早めに質問',0],['4月','レポート作成・提出',0],['5月期','科目終末試験(午後)',0]]},
+
+ {id:'eidoku',n:'英語読解',code:'7701',f:'テキスト授業',cr:2,term:'next',who:'教科書: 石井重光',
+  st:'3月ごろから少しずつ読む計画',next:'5月期 試験',
+  steps:[['レポート提出',0],['5月期 試験',0]],
+  syl:{goal:'英文を精読し、内容把握・文法・和訳ができるようにする',text:'石井重光 著の教科書(新しい版)',grade:'レポートと科目終末試験の両方に合格',notes:['試験は内容把握、文法説明、日本語訳','辞書と文法書を用意し、毎日少しずつ読む']},
+  rep:{theme:'設問1: Unit1〜4とUnit5〜12の筆者が「国ごとの当たり前の違い」をどう論じているか比較 / 設問2: Unit13〜20の筆者が環境やネットリテラシーなどをどう論じているか',len:'各950〜1,000字(日本語)・参考文献は使わない',notes:[]},
+  lessons:null,lessonsNote:'',
+  plan:[['3月〜','教科書を少しずつ読む',0],['4月','文法と訳の練習、レポート',0],['5月期','科目終末試験(午前)',0]]},
+
+ {id:'chiri',n:'地理学(自然環境論)',code:'1404',f:'テキスト授業',cr:4,term:'next',who:'教科書: 辰己勝・辰己眞知子',
+  st:'5月から着手の計画',next:'6月期 試験',
+  steps:[['レポート提出',0],['6月期 試験',0]],
+  syl:{goal:'自然地理と人文地理の基礎、地誌、統計と地図を読み取り、自分で主題図を作れるようになる',text:'辰己勝・辰己眞知子 著の教科書',grade:'レポートと科目終末試験の両方に合格',notes:['エッセイではなく科学的根拠に基づいて書く','図表は自分で作るか手を加える。世界地図帳と統計を手元に']},
+  rep:{theme:'【1】東南アジアの自然環境と農業地域(2か国比較)か、【2】ヨーロッパの気候と人々の生活のどちらか',len:'4,000字・図表が必須・参考文献の記入が必要',notes:['本文1行目に設題番号と地域名だけを書く(ないと採点されない)']},
+  lessons:null,lessonsNote:'',
+  plan:[['5月〜','6週間以上かけてレポート(図表づくりを含む)',0],['6月期','科目終末試験(午前)',0]]},
+
+ {id:'boki2',n:'簿記論②',code:'',f:'オンデマンド授業(前期)',cr:2,term:'next',who:'担当は未確認',
+  st:'2027年前期に申込予定',next:'4月前半 申込(推定)',
+  steps:[['申込',0],['視聴',0],['単位修了試験',0]],
+  syl:null,sylNote:'シラバスはまだ見ていません(未確認)。2027年4月にWEBシラバスで教科書と課題を確認します。',
+  rep:null,lessons:null,lessonsNote:'',
+  plan:[['4/1〜4/15ごろ','オンデマンド授業(前期)に申込(推定)',0],['5/1〜7/31','視聴(推定)',0],['7月末','単位修了試験(推定)',0]]},
+
+ {id:'shohin1',n:'商品学①',code:'3501',f:'振替予定(テキストでは受けない)',cr:2,term:'next',who:'',
+  st:'商品学②を2つ受けていて、後から合格した方が商品学①に振り替わる予定',next:'2/17 振替の確定',
+  steps:[['商品学② スクーリング合格',0],['商品学② オンデマンド合格',0]],
+  syl:null,sylNote:'振替前にテキスト授業で商品学①を修得すると振替できないので、商品学①のレポートと試験は受けません。',
+  rep:null,lessons:null,lessonsNote:'',
+  plan:[['12/17','スクーリングの成績発表',0],['2/17','オンデマンドの成績発表。両方合格なら商品学①に振替',0]]}
 ];
-// done: 初期値(1=済み)。g: タブの分類
+
 const TASKS=[
- {id:'s3-notes',t:'商品学② 予習ノート第11〜15回を作る',d:'2026-11-27',g:'11月',done:1},
- {id:'s3-items',t:'11/28の持ち物(学生証・予習ノート・資料③〜⑧・筆記用具)をそろえる',d:'2026-11-27',g:'11月'},
- {id:'s3-day',t:'商品学② スクーリング3日目と単位修了試験',d:'2026-11-28',g:'11月'},
- {id:'od-shohin-rep',t:'商品学②(オンデマンド)のレポートに学籍番号を入れてKULeDで提出',d:'2026-12-15',g:'11月'},
- {id:'od-shoso-rep',t:'商学総論②のレポートを提出したかKULeDで確認',d:'2026-11-30',g:'11月'},
- {id:'keiei-setsudai',t:'経営学総論の設題をKULeDで確認し、参考書(書籍)を手配',d:'2026-11-30',g:'11月'},
- {id:'keiei-read',t:'経営学総論 教科書の通読',d:'2026-12-06',g:'12月'},
- {id:'keiei-q1',t:'経営学総論 設問1(意思決定)の精読とサブノート',d:'2026-12-06',g:'12月'},
- {id:'keiei-q2',t:'経営学総論 設問2(非営利組織)の精読とサブノート',d:'2026-12-13',g:'12月'},
- {id:'keiei-draft',t:'経営学総論 レポートの構成と下書き(各2,000字)',d:'2026-12-13',g:'12月'},
- {id:'keiei-submit',t:'経営学総論 レポートを推敲して提出',d:'2026-12-18',g:'12月'},
- {id:'macro2-view',t:'マクロ経済学② 視聴を週2〜3本ずつ進める',d:'2027-01-10',g:'12月'},
- {id:'eng-a',t:'英語総合A(大村) 15ユニットを視聴',d:'2027-01-10',g:'12月'},
- {id:'eng-b',t:'英語総合B(藤井) 15ユニット。予習してから視聴し、確認テストは1回目から本気で',d:'2027-01-10',g:'12月'},
- {id:'jan-apply',t:'1月終末試験(経営学総論)をKULeDで申込',d:'2026-12-22',g:'12月'},
- {id:'grade-1217',t:'12/17の成績発表を確認(商学総論①・マクロ①・商品学②スクーリング)',d:'2026-12-17',g:'12月'},
- {id:'keiei-exam',t:'経営学総論 想定論点を50分で書く練習 → 1/17受験',d:'2027-01-17',g:'1月'},
+ {id:'s3-notes',t:'商品学② 予習ノート第11〜15回を作る',d:'2026-11-27',g:'11月',sub:'shohin2s',done:1},
+ {id:'s3-items',t:'11/28の持ち物(学生証・予習ノート・資料③〜⑧・筆記用具)をそろえる',d:'2026-11-27',g:'11月',sub:'shohin2s'},
+ {id:'s3-day',t:'商品学② スクーリング3日目と単位修了試験',d:'2026-11-28',g:'11月',sub:'shohin2s'},
+ {id:'od-shoso-rep',t:'商学総論②のレポートを提出したかKULeDで確認',d:'2026-11-30',g:'11月',sub:'shoso2'},
+ {id:'keiei-setsudai',t:'経営学総論の設題をKULeDで確認し、参考書(書籍)を手配',d:'2026-11-30',g:'11月',sub:'keiei'},
+ {id:'od-shohin-rep',t:'商品学②(オンデマンド)のレポートに学籍番号を入れてKULeDで提出',d:'2026-12-15',g:'12月',sub:'shohin2o'},
+ {id:'keiei-read',t:'経営学総論 教科書の通読',d:'2026-12-06',g:'12月',sub:'keiei'},
+ {id:'keiei-q1',t:'経営学総論 設問1(意思決定)の精読とサブノート',d:'2026-12-06',g:'12月',sub:'keiei'},
+ {id:'keiei-q2',t:'経営学総論 設問2(非営利組織)の精読とサブノート',d:'2026-12-13',g:'12月',sub:'keiei'},
+ {id:'keiei-draft',t:'経営学総論 レポートの構成と下書き(各2,000字)',d:'2026-12-13',g:'12月',sub:'keiei'},
+ {id:'keiei-submit',t:'経営学総論 レポートを推敲して提出',d:'2026-12-18',g:'12月',sub:'keiei'},
+ {id:'jan-apply',t:'1月終末試験(経営学総論)をKULeDで申込',d:'2026-12-22',g:'12月',sub:'keiei'},
+ {id:'grade-1217',t:'12/17の成績発表を確認(商学総論①・マクロ①・商品学②スクーリング)',d:'2026-12-17',g:'12月',sub:'shoso1'},
+ {id:'macro2-view',t:'マクロ経済学② 視聴を週2〜3本ずつ進める',d:'2027-01-10',g:'12月',sub:'macro2'},
+ {id:'eng-a',t:'英語総合A(大村) 15ユニットを視聴',d:'2027-01-10',g:'12月',sub:'engA'},
+ {id:'eng-b',t:'英語総合B(藤井) 15ユニット。予習してから視聴し、確認テストは1回目から本気で',d:'2027-01-10',g:'12月',sub:'engB'},
+ {id:'keiei-exam',t:'経営学総論 想定論点を50分で書く練習 → 1/17受験',d:'2027-01-17',g:'1月',sub:'keiei'},
  {id:'od-q',t:'オンデマンドで先生に聞きたいことがあれば質問(1/20まで)',d:'2027-01-20',g:'1月'},
- {id:'od-survey',t:'商品学②(オンデマンド) メディア授業アンケートに回答',d:'2027-01-24',g:'1月'},
  {id:'od-exams',t:'単位修了試験5件の日程を決める(1日1〜2件)',d:'2027-01-20',g:'1月'},
+ {id:'od-survey',t:'商品学②(オンデマンド) メディア授業アンケートに回答',d:'2027-01-24',g:'1月',sub:'shohin2o'},
+ {id:'keizai-rep',t:'経済学のレポートを提出(2/7受験なら1/26まで)',d:'2027-01-26',g:'1月',sub:'keizai'},
+ {id:'feb-apply',t:'2月終末試験(経済学)を申込',d:'2027-01-26',g:'1月',sub:'keizai'},
  {id:'od-exam-run',t:'単位修了試験5件を受ける(1/25〜31)',d:'2027-01-31',g:'1月'},
- {id:'keizai-rep',t:'経済学のレポートを提出(2/7受験なら1/26まで)',d:'2027-01-26',g:'1月'},
- {id:'feb-apply',t:'2月終末試験(経済学)を申込',d:'2027-01-26',g:'1月'},
- {id:'keizai-exam',t:'経済学 2/7受験',d:'2027-02-07',g:'2〜3月'},
- {id:'kagaku-rep',t:'化学のレポートを提出し、3月終末試験を申込(2/17〜23)',d:'2027-02-23',g:'2〜3月'},
- {id:'kagaku-exam',t:'化学 3/7受験',d:'2027-03-07',g:'2〜3月'}
+ {id:'keizai-exam',t:'経済学 2/7受験',d:'2027-02-07',g:'2〜3月',sub:'keizai'},
+ {id:'kagaku-rep',t:'化学のレポートを提出し、3月終末試験を申込(2/17〜23)',d:'2027-02-23',g:'2〜3月',sub:'kagaku'},
+ {id:'kagaku-exam',t:'化学 3/7受験',d:'2027-03-07',g:'2〜3月',sub:'kagaku'}
 ];
-// 週ごとの計画。task は TASKS の id
 const WEEKS=[
- {from:'2026-11-23',to:'2026-11-29',tasks:['s3-notes','s3-items','s3-day','od-shohin-rep','od-shoso-rep','keiei-setsudai'],note:'商品学②(オンデマンド)が予定より早く終わったので、12月前半はその分を経営学総論と英語総合に回せます。'},
- {from:'2026-11-30',to:'2026-12-06',tasks:['keiei-setsudai','keiei-read','keiei-q1','macro2-view','od-shohin-rep'],note:'計画では12月前半に商品学②(オンデマンド)の視聴でしたが、もう終わっています。'},
+ {from:'2026-11-23',to:'2026-11-29',tasks:['s3-notes','s3-items','s3-day','od-shoso-rep','keiei-setsudai','od-shohin-rep'],note:'商品学②(オンデマンド)が予定より早く終わったので、12月前半はその分を経営学総論と英語総合に回せます。'},
+ {from:'2026-11-30',to:'2026-12-06',tasks:['keiei-setsudai','keiei-read','keiei-q1','macro2-view','od-shohin-rep'],note:''},
  {from:'2026-12-07',to:'2026-12-13',tasks:['keiei-q2','keiei-draft','macro2-view','eng-a'],note:''},
  {from:'2026-12-14',to:'2026-12-20',tasks:['keiei-submit','od-shohin-rep','grade-1217','jan-apply','eng-a','eng-b'],note:''},
  {from:'2026-12-21',to:'2027-01-03',tasks:['jan-apply','eng-a','eng-b','macro2-view'],note:'12/23〜1/5は学生センターが閉室です。'},
@@ -229,6 +374,7 @@ const WEEKS=[
 const UNKNOWNS=['11/22の試験(商学総論①・マクロ経済学①)は2科目とも受けられたか','商学総論①のレポートの添削結果(合格・再提出)','商学総論②のレポートを提出したか、確認テストは全部合格か','商品学②(オンデマンド)のレポートを提出したか','マクロ経済学②を何回まで見たか','英語総合A・Bを始めたか','経営学総論に着手したか(設題確認・参考書)'];
 /* ===== 表はここまで ===== */
 
+const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const W='日月火水木金土';
 const todayStr=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(new Date());
@@ -237,63 +383,105 @@ const days=(a,b)=>Math.round((P(b)-P(a))/864e5);
 const md=s=>{const t=new Date(P(s));return `${t.getUTCMonth()+1}/${t.getUTCDate()}(${W[t.getUTCDay()]})`};
 const range=e=>e.to?`${md(e.d)}〜${md(e.to)}`:md(e.d);
 const tY=new Date(P(todayStr));
-document.getElementById('today').textContent=`今日は ${tY.getUTCFullYear()}年${md(todayStr)}`;
+for(const el of document.querySelectorAll('.todayTxt'))el.textContent=`今日は ${tY.getUTCFullYear()}年${md(todayStr)}`;
+const [ay,am,ad]=AS_OF.split('-');$('asof').textContent=`${ay}年${Number(am)}月${Number(ad)}日`;
 
 let store={};try{store=JSON.parse(localStorage.getItem('kindai-dash')||'{}')}catch(e){}
 const isDone=t=>t.id in store?store[t.id]:!!t.done;
 const save=()=>{try{localStorage.setItem('kindai-dash',JSON.stringify(store))}catch(e){}};
+const bySub=Object.fromEntries(SUBJECTS.map(s=>[s.id,s]));
+const isActive=e=>(e.to||e.d)>=todayStr;
+const leftTxt=e=>{const n=days(todayStr,e.d);if(n<=0)return e.to&&e.to>=todayStr?'期間中':(n===0?'今日':'済');return n===1?'明日':`あと${n}日`};
+const dlRow=e=>{const n=days(todayStr,e.d),past=!isActive(e);
+ return `<li class="${past?'past':''}"><span class="d num">${esc(md(e.d))}</span><span class="left ${!past&&n<=7?'hot':''}">${leftTxt(e)}</span><span class="t">${esc(e.t)}${e.to?`<span class="tag">〜${esc(md(e.to))}</span>`:''}${e.u?'<span class="tag u">未確認</span>':''}${e.must&&!past?'<span class="tag must">重要</span>':''}${e.s?`<span class="s">${esc(e.s)}</span>`:''}</span></li>`};
+const chkHTML=list=>list.map(t=>`<li class="${isDone(t)?'done':''}"><label><input type="checkbox" data-id="${esc(t.id)}" ${isDone(t)?'checked':''}><span><span class="tx">${esc(t.t)}</span><span class="due num">${esc(md(t.d))}まで</span></span></label></li>`).join('');
+const pct=s=>Math.round(s.steps.filter(x=>x[1]===1).length/s.steps.length*100);
+const nextFor=id=>DEADLINES.filter(e=>isActive(e)&&(e.sub||[]).includes(id)).sort((a,b)=>a.d.localeCompare(b.d))[0];
 
-// 直近
-const active=DEADLINES.filter(e=>(e.to||e.d)>=todayStr).sort((a,b)=>a.d.localeCompare(b.d));
-const leftTxt=e=>{const n=days(todayStr,e.d);if(n<=0)return e.to?'期間中':'今日';return n===1?'明日':`あと${n}日`};
+const active=DEADLINES.filter(isActive).sort((a,b)=>a.d.localeCompare(b.d));
 const hero=active.find(e=>e.must)||active[0];
 if(hero){const n=Math.max(0,days(todayStr,hero.d));
- document.getElementById('hero').innerHTML=`<div class="big num">${n}<small>日</small></div><div><div class="when">次の大事な予定まで</div><div class="what">${esc(hero.t)}</div><div class="when">${esc(range(hero))}${hero.s?' ・ '+esc(hero.s):''}</div></div>`}
-document.getElementById('upcoming').innerHTML=active.slice(0,7).map(e=>{const n=days(todayStr,e.d);
- return `<li><span class="d num">${esc(md(e.d))}</span><span class="left ${n<=7?'hot':''}">${leftTxt(e)}</span><span class="t">${esc(e.t)}${e.to?`<span class="tag">〜${esc(md(e.to))}</span>`:''}${e.u?'<span class="tag u">未確認</span>':''}${e.must?'<span class="tag must">重要</span>':''}${e.s?`<span class="s">${esc(e.s)}</span>`:''}</span></li>`}).join('');
+ $('hero').innerHTML=`<div class="big num">${n}<small>日</small></div><div><div class="when">次の大事な予定まで</div><div class="what">${esc(hero.t)}</div><div class="when">${esc(range(hero))}${hero.s?' ・ '+esc(hero.s):''}</div></div>`}
+$('upcoming').innerHTML=active.slice(0,6).map(dlRow).join('');
 
-// 今週
+const card=s=>{const nx=nextFor(s.id),p=pct(s),hasU=s.steps.some(x=>x[1]==='u');
+ const nxTxt=nx?`<b class="num">${esc(md(nx.d))}</b> ${esc(nx.t.replace(/^科目終末試験 (午前|午後): /,'試験 '))}`:esc(s.next);
+ return `<a class="card ${s.term==='next'?'later':''} ${p===100?'doneC':''}" href="#s-${esc(s.id)}"><div class="cn">${esc(s.n)}</div><div class="cf">${esc(s.f)}${s.cr?` ・ ${s.cr}単位`:''}${hasU?' ・ 未確認あり':''}</div><div class="cx">次: ${nxTxt}</div><div class="bar ${p===100?'full':''}"><i style="width:${p}%"></i></div></a>`};
+$('shelf').innerHTML=`<h3>今学期(2026年11月〜2027年3月)</h3><div class="cards">${SUBJECTS.filter(s=>s.term==='now').map(card).join('')}</div><h3>2027年4月以降</h3><div class="cards">${SUBJECTS.filter(s=>s.term==='next').map(card).join('')}</div>`;
+
 const byId=Object.fromEntries(TASKS.map(t=>[t.id,t]));
 const wk=WEEKS.find(w=>todayStr>=w.from&&todayStr<=w.to)||WEEKS.find(w=>w.from>todayStr);
-const chkHTML=list=>list.map(t=>`<li class="${isDone(t)?'done':''}"><label><input type="checkbox" data-id="${esc(t.id)}" ${isDone(t)?'checked':''}><span><span class="tx">${esc(t.t)}</span><span class="due num">${esc(md(t.d))}まで</span></span></label></li>`).join('');
 function renderWeek(){
- if(!wk){document.getElementById('weekList').innerHTML='<li>予定された週はありません。</li>';return}
- document.getElementById('weekRange').textContent=`${md(wk.from)}〜${md(wk.to)}`;
- document.getElementById('weekList').innerHTML=chkHTML(wk.tasks.map(i=>byId[i]).filter(Boolean));
- document.getElementById('weekNote').textContent=wk.note||'';
+ if(!wk){$('weekList').innerHTML='<li>予定された週はありません。</li>';return}
+ $('weekRange').textContent=`${md(wk.from)}〜${md(wk.to)}`;
+ $('weekList').innerHTML=chkHTML(wk.tasks.map(i=>byId[i]).filter(Boolean));
+ $('weekNote').textContent=wk.note||'';
 }
-
-// 科目
-document.getElementById('subjects').innerHTML=SUBJECTS.map(s=>{const tot=s.steps.length,ok=s.steps.filter(x=>x[1]===1).length,p=Math.round(ok/tot*100),hasU=s.steps.some(x=>x[1]==='u');
- const stepTxt=s.steps.map(x=>`${x[1]===1?'✓':x[1]==='u'?'?':'・'}${x[0]}`).join(' ');
- return `<tr><td class="nm">${esc(s.n)}<span>${esc(s.f)}</span></td><td>${esc(s.st)}${hasU?'<span class="tag u">未確認あり</span>':''}<div class="note" style="margin:4px 0 0">${esc(stepTxt)}</div></td><td><span class="pct num">${ok}/${tot} 手順</span><div class="bar ${p===100?'full':''}"><i style="width:${p}%"></i></div></td><td>${esc(s.next)}</td></tr>`}).join('');
-
-// チェックリスト
-const groups=['すべて','未完了',...[...new Set(TASKS.map(t=>t.g))]];
+const groups=['未完了','すべて',...new Set(TASKS.map(t=>t.g))];
 let cur=(()=>{try{return localStorage.getItem('kindai-tab')||'未完了'}catch(e){return '未完了'}})();
 if(!groups.includes(cur))cur='未完了';
 function renderTasks(){
  const list=TASKS.filter(t=>cur==='すべて'||(cur==='未完了'?!isDone(t):t.g===cur)).sort((a,b)=>a.d.localeCompare(b.d));
- document.getElementById('tasks').innerHTML=list.length?chkHTML(list):'<li style="padding:12px 0">このタブのタスクはありません。</li>';
- const n=TASKS.filter(isDone).length;document.getElementById('prog').textContent=`${TASKS.length}件中 ${n}件 完了`;
- document.getElementById('tabs').innerHTML=groups.map(g=>`<button type="button" data-g="${esc(g)}" aria-pressed="${g===cur}">${esc(g)}</button>`).join('');
+ $('tasks').innerHTML=list.length?chkHTML(list):'<li style="padding:12px 0">このタブのタスクはありません。</li>';
+ $('prog').textContent=`${TASKS.length}件中 ${TASKS.filter(isDone).length}件 完了`;
+ $('tabs').innerHTML=groups.map(g=>`<button type="button" data-g="${esc(g)}" aria-pressed="${g===cur}">${esc(g)}</button>`).join('');
 }
-document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cur=b.dataset.g;try{localStorage.setItem('kindai-tab',cur)}catch(x){}renderTasks()});
-document.addEventListener('change',e=>{const c=e.target;if(!c.matches('input[data-id]'))return;store[c.dataset.id]=c.checked;save();renderWeek();renderTasks()});
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cur=b.dataset.g;try{localStorage.setItem('kindai-tab',cur)}catch(x){}renderTasks()});
 
-// 年表
 let lastM='';
-document.getElementById('timeline').innerHTML=[...DEADLINES].sort((a,b)=>a.d.localeCompare(b.d)).map(e=>{const m=e.d.slice(0,7);let h='';
+$('timeline').innerHTML=[...DEADLINES].sort((a,b)=>a.d.localeCompare(b.d)).map(e=>{const m=e.d.slice(0,7);let h='';
  if(m!==lastM){lastM=m;const[y,mm]=m.split('-');h=`<li class="m">${y}年${Number(mm)}月</li>`}
- return h+`<li class="${(e.to||e.d)<todayStr?'past':''}"><span class="d num">${esc(md(e.d))}</span><span>${esc(e.t)}${e.to?`(〜${esc(md(e.to))})`:''}${e.kind==='exam'?'<span class="tag must">試験</span>':''}</span></li>`}).join('');
+ return h+`<li class="${isActive(e)?'':'past'}"><span class="d num">${esc(md(e.d))}</span><span>${esc(e.t)}${e.to?`(〜${esc(md(e.to))})`:''}${e.kind==='exam'?'<span class="tag must">試験</span>':''}</span></li>`}).join('');
+$('unknowns').innerHTML=UNKNOWNS.map(u=>`<li>${esc(u)}</li>`).join('');
 
-document.getElementById('unknowns').innerHTML=UNKNOWNS.map(u=>`<li>${esc(u)}</li>`).join('');
+const stepCls=v=>v===1?'s1':v==='u'?'su':'';
+const stepMark=v=>v===1?'✓ ':v==='u'?'? ':'';
+const stTag=v=>v===1?'<span class="tag okt">済み</span>':v==='u'?'<span class="tag u">未確認</span>':'';
+function subjectHTML(s){
+ const dls=DEADLINES.filter(e=>(e.sub||[]).includes(s.id)).sort((a,b)=>a.d.localeCompare(b.d));
+ const tks=TASKS.filter(t=>t.sub===s.id).sort((a,b)=>a.d.localeCompare(b.d));
+ const syl=s.syl?`<dl class="kv"><dt>到達目標</dt><dd>${esc(s.syl.goal)}</dd><dt>教科書</dt><dd>${esc(s.syl.text)}</dd><dt>成績評価</dt><dd>${esc(s.syl.grade)}</dd></dl>${s.syl.notes.length?`<h3>注意点・進め方</h3><ul class="pl">${s.syl.notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}`:`<p>${esc(s.sylNote||'シラバスの資料がありません(未確認)。')}</p>`;
+ const rep=s.rep?`<div class="panel sec"><h2>レポート</h2><dl class="kv"><dt>設題</dt><dd>${esc(s.rep.theme)}</dd><dt>字数・条件</dt><dd>${esc(s.rep.len)}</dd></dl>${s.rep.notes.length?`<ul class="pl" style="margin-top:8px">${s.rep.notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</div>`:'';
+ const les=s.lessons?`<table class="stack"><thead><tr><th>回</th><th>内容</th></tr></thead><tbody>${s.lessons.map(l=>`<tr><td class="r">${esc(l[0])}</td><td>${esc(l[1])}</td></tr>`).join('')}</tbody></table>`:`<p class="sub">${esc(s.lessonsNote||'回ごとの内容はまだ資料にありません(未確認)。')}</p>`;
+ return `<header class="band" style="padding-bottom:6px"><div class="wrap">
+  <h1>${esc(s.n)}</h1>
+  <div class="meta"><span>${esc(s.f)}</span>${s.code?`<span>科目コード ${esc(s.code)}</span>`:''}${s.cr?`<span>${s.cr}単位</span>`:''}${s.who?`<span>${esc(s.who)}</span>`:''}</div>
+ </div></header>
+ <section class="band" style="padding-top:10px"><div class="wrap grid">
+  <div class="panel"><h2>いまの状況</h2><p style="margin:0">${esc(s.st)}</p>
+   <ul class="steps">${s.steps.map(x=>`<li class="${stepCls(x[1])}">${stepMark(x[1])}${esc(x[0])}</li>`).join('')}</ul>
+   <p class="note">✓ 済み ・ ? 未確認 ・ 印なし まだ</p>
+   <h3>この科目の締切と予定</h3>
+   ${dls.length?`<ol class="dl">${dls.map(dlRow).join('')}</ol>`:`<p class="sub">${esc(s.next)}</p>`}
+  </div>
+  <div class="panel"><h2>この科目の学習スケジュール</h2>
+   <table class="stack"><thead><tr><th>時期</th><th>やること</th></tr></thead><tbody>${s.plan.map(p=>`<tr><td class="w num">${esc(p[0])}</td><td>${esc(p[1])}${stTag(p[2])}</td></tr>`).join('')}</tbody></table>
+   ${tks.length?`<h3>チェックリスト</h3><ul class="chk">${chkHTML(tks)}</ul>`:''}
+  </div>
+ </div></section>
+ <section class="band pt0"><div class="wrap">
+  <div class="panel"><h2>シラバスの要点</h2>${syl}</div>
+  ${rep}
+  <div class="panel sec"><h2>${s.f.includes('テキスト')?'教科書の章立て':'回ごとの内容'}</h2>${les}</div>
+ </div></section>`;
+}
 
-document.getElementById('copy').addEventListener('click',async()=>{
- const txt=['【近大 学習状況】'+todayStr,...SUBJECTS.map(s=>`${s.n}(${s.f}): ${s.st} / 次: ${s.next}`),'完了したタスク: '+TASKS.filter(isDone).map(t=>t.t).join('、')].join('\n');
- try{await navigator.clipboard.writeText(txt);document.getElementById('copied').textContent='コピーしました。チャットに貼れば更新に使えます。'}catch(e){document.getElementById('copied').textContent='コピーできませんでした。'}
+function route(){
+ const m=location.hash.match(/^#s-([a-z0-9]+)$/i),s=m&&bySub[m[1]];
+ if(s){$('subjectBody').innerHTML=subjectHTML(s);$('homeView').hidden=true;$('subjectView').hidden=false;document.title=`${s.n} | 近大学習`;window.scrollTo(0,0)}
+ else{$('subjectView').hidden=true;$('homeView').hidden=false;document.title='近大 学習ダッシュボード';renderWeek();renderTasks()}
+}
+window.addEventListener('hashchange',route);
+
+document.addEventListener('change',e=>{const c=e.target;if(!c.matches('input[data-id]'))return;store[c.dataset.id]=c.checked;save();
+ const li=c.closest('li');if(li)li.classList.toggle('done',c.checked);
+ if(!$('homeView').hidden){renderWeek();renderTasks()}});
+
+$('copy').addEventListener('click',async()=>{
+ const txt=['【近大 学習状況】'+todayStr,...SUBJECTS.filter(s=>s.term==='now').map(s=>`${s.n}(${s.f}): ${s.st}`),'完了したタスク: '+TASKS.filter(isDone).map(t=>t.t).join('、')].join('\n');
+ try{await navigator.clipboard.writeText(txt);$('copied').textContent='コピーしました。チャットに貼れば更新に使えます。'}catch(e){$('copied').textContent='コピーできませんでした。'}
 });
-renderWeek();renderTasks();
+route();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 }
 </script>
