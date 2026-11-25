@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="近大学習">
+<meta name="theme-color" content="#e7e4df" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171513" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>近大 学習ダッシュボード</title>
+<style>
+/* VOICE: 事務的で落ち着いた、学生の「時間割掲示板」
+   IDEA: 学生センターの掲示板に貼られた締切表と、自分の手帳のチェック欄
+   PICTURE: 次の締切までの大きな残り日数と、罫線のしっかりした締切表
+   COLOUR and TYPE: 石の灰 #e7e4df、黒、煉瓦 #c8371e を1点、白い紙面 / Zen Kaku Gothic New + Schibsted Grotesk(数字)
+   LAYOUT: 上に「次の締切」と「今週やること」、下に科目別の進捗、チェックリスト、年表 */
+:root{color-scheme:light dark;
+--bg:light-dark(#e7e4df,#171513);--panel:light-dark(#ffffff,#211f1c);--ink:light-dark(#141210,#ece8e2);
+--mute:light-dark(#5d5850,#a7a097);--rule:light-dark(#cfcac2,#3a3631);--brick:light-dark(#c8371e,#ef6a4f);
+--ok:light-dark(#2f6b3a,#7cc48a);--warn:light-dark(#9a6a00,#e6b54a);--soft:light-dark(#f3f1ed,#2a2724)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);background:var(--bg);color:var(--ink);font:16px/1.6 "Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;overflow-x:clip}
+.num{font-family:-apple-system,"Helvetica Neue","Hiragino Sans",sans-serif;font-variant-numeric:tabular-nums}
+.band{padding:clamp(20px,3.5vw,48px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+header.band{padding-bottom:8px}
+h1{font-size:clamp(28px,4.2vw,44px);line-height:1.1;margin:0 0 6px;text-wrap:balance;font-weight:700}
+h2{font-size:22px;line-height:1.25;margin:0 0 12px;font-weight:700}
+.sub{color:var(--mute);margin:0;font-size:15px}
+.grid{display:grid;gap:18px;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:clamp(16px,2.4vw,26px)}
+.hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 22px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:14px}
+.big{font-size:clamp(64px,11vw,112px);line-height:.9;font-weight:700;color:var(--brick)}
+.big small{font-size:.28em;color:var(--ink);margin-left:4px}
+.hero .what{font-size:clamp(19px,2.4vw,24px);font-weight:700;line-height:1.3}
+.hero .when{color:var(--mute);font-size:15px}
+ol.dl{list-style:none;margin:0;padding:0}
+ol.dl li{display:grid;grid-template-columns:5.6em 4.4em minmax(0,1fr);gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+ol.dl li:last-child{border-bottom:0}
+.d{white-space:nowrap;font-weight:700}.left{white-space:nowrap;color:var(--mute);text-align:right;font-size:14px}
+.left.hot{color:var(--brick);font-weight:700}
+.t{font-size:15.5px}.t .s{display:block;color:var(--mute);font-size:13.5px}
+.tag{display:inline-block;font-size:13px;line-height:1.5;padding:0 7px;border-radius:3px;border:1px solid var(--rule);color:var(--mute);margin-left:6px;white-space:nowrap;vertical-align:1px}
+.tag.u{border-color:var(--warn);color:var(--warn)}
+.tag.must{border-color:var(--brick);color:var(--brick)}
+.week h3{font-size:15px;margin:0 0 6px;color:var(--mute);font-weight:500}
+.chk{list-style:none;margin:0;padding:0}
+.chk li{border-bottom:1px solid var(--rule)}
+.chk li:last-child{border-bottom:0}
+.chk label{display:flex;gap:12px;align-items:flex-start;padding:10px 2px;min-height:44px;cursor:pointer}
+.chk input{appearance:none;flex:none;width:22px;height:22px;margin-top:2px;border:2px solid var(--ink);border-radius:3px;background:var(--panel);display:grid;place-content:center;cursor:pointer}
+.chk input:checked{background:var(--ink)}
+.chk input:checked::after{content:"";width:6px;height:11px;border:solid var(--panel);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.chk input:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+.chk .done .tx{color:var(--mute);text-decoration:line-through}
+.chk .due{white-space:nowrap;color:var(--mute);font-size:13.5px;margin-left:6px}
+.note{font-size:13.5px;color:var(--mute);margin:10px 0 0}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-weight:500;color:var(--mute);font-size:13.5px;border-bottom:2px solid var(--ink);padding:6px 8px}
+td{border-bottom:1px solid var(--rule);padding:10px 8px;vertical-align:top}
+td.nm{font-weight:700;white-space:nowrap}
+td.nm span{display:block;font-weight:400;color:var(--mute);font-size:13px}
+.bar{height:8px;background:var(--soft);border:1px solid var(--rule);border-radius:4px;overflow:hidden;margin-top:6px;width:min(160px,100%)}
+.bar i{display:block;height:100%;background:var(--ink)}
+.bar.full i{background:var(--ok)}
+.pct{font-size:13px;color:var(--mute);white-space:nowrap}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.tabs button{font:inherit;font-size:15px;min-height:44px;padding:0 14px;border:1px solid var(--ink);background:var(--panel);color:var(--ink);border-radius:4px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--ink);color:var(--panel)}
+.tabs button:focus-visible,summary:focus-visible,.btn:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+.prog{font-size:14px;color:var(--mute);margin:0 0 6px}
+.tl{list-style:none;margin:0;padding:0;columns:2 340px;column-gap:32px}
+.tl li{break-inside:avoid;display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--rule);font-size:15px}
+.tl li.past{color:var(--mute)}
+.tl .m{break-after:avoid;border:0;padding:16px 0 4px;font-weight:700;display:block}
+.unk li{margin:4px 0}
+details{margin-top:6px}summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.btn{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border:1px solid var(--ink);background:var(--ink);color:var(--panel);border-radius:4px;cursor:pointer}
+footer{color:var(--mute);font-size:13.5px}
+@media(max-width:600px){table{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--rule)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:6.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6em;margin-inline-start:-6.5em;white-space:normal;color:var(--mute);font-size:13px}.stack td:empty{display:none}td.nm{white-space:normal}
+ol.dl li{grid-template-columns:5em 3.8em minmax(0,1fr);gap:8px}.hero{grid-template-columns:minmax(0,1fr)}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header class="band"><div class="wrap">
+  <h1>近大通信 学習ダッシュボード</h1>
+  <p class="sub">短期大学部 商経科 1年目。<span id="today"></span>(日本時間)。データの確認日は <b>2026年11月26日</b>。「未確認」は資料から分からないところです。</p>
+</div></header>
+
+<section class="band" style="padding-top:12px"><div class="wrap grid">
+  <div class="panel">
+    <div class="hero" id="hero"></div>
+    <h2>直近の締切と予定</h2>
+    <ol class="dl" id="upcoming"></ol>
+  </div>
+  <div class="panel week">
+    <h2 id="weekTitle">今週やること</h2>
+    <h3 id="weekRange"></h3>
+    <ul class="chk" id="weekList"></ul>
+    <p class="note" id="weekNote"></p>
+  </div>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap panel">
+  <h2>科目別の進み具合</h2>
+  <table class="stack"><thead><tr><th>科目</th><th>いまの状況</th><th>進み具合</th><th>次の期限</th></tr></thead><tbody id="subjects"></tbody></table>
+  <p class="note">進み具合は、手順(視聴・レポート・試験など)のうち終わった数の割合です。未確認の手順は終わっていない扱いにしています。</p>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap panel">
+  <h2>タスクのチェックリスト</h2>
+  <p class="prog" id="prog"></p>
+  <div class="tabs" id="tabs"></div>
+  <ul class="chk" id="tasks"></ul>
+  <p class="note">チェックはこの端末のブラウザにだけ保存されます(スマホとPCでは別々)。両方で合わせたいときは、終わったことをチャットで伝えてもらえれば、ページ側の初期値を更新します。</p>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap panel">
+  <h2>2027年3月までの年表</h2>
+  <ul class="tl" id="timeline"></ul>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap panel">
+  <h2>確認してほしいこと(未確認)</h2>
+  <ul class="unk" id="unknowns"></ul>
+  <details>
+    <summary>このページの更新のしかた</summary>
+    <p>予定・科目・タスクは、ページの中の4つの表(DEADLINES、SUBJECTS、TASKS、WEEKS)にまとめてあります。日付は「2026-12-15」の形です。一番かんたんなのは、チャットで「経営学総論のレポートを出した」「マクロ②は第6回まで見た」のように伝えてもらうことで、こちらで表を直して同じリンクのまま更新します。</p>
+    <button class="btn" id="copy" type="button">いまの状況を文章でコピー</button> <span id="copied" class="note"></span>
+  </details>
+</div></section>
+
+<footer class="band" style="padding-top:0"><div class="wrap">出典: 学習計画_1年目(11/13改訂)、年間行事予定表 令和8年度、学習の手引き、Googleカレンダー、ドライブ近大フォルダの読み込み報告、各科目のレポート作業。大学の行事で日程が変わることがあるので、最終的には KULeD と梅信で確認してください。</div></footer>
+
+<script>
+{
+/* ===== ここから下の4つの表を直せば更新できます ===== */
+const AS_OF='2026-11-26';
+// kind: exam=試験, due=提出・申込の締切, event=行事・発表。to=期間の終わり。must=重要
+const DEADLINES=[
+ {d:'2026-11-25',to:'2026-12-01',t:'12月終末試験の受付',s:'12月期は受験しない計画',kind:'event'},
+ {d:'2026-11-28',t:'商品学② スクーリング3日目 + 単位修了試験',s:'9:00〜17:30 東大阪キャンパス。予習ノート第11〜15回を持参',kind:'exam',must:1},
+ {d:'2026-12-15',t:'商品学②(オンデマンド)課題レポート 1回目の目標',s:'提出版は11/24に完成。提出したかは未確認',kind:'due',u:1},
+ {d:'2026-12-16',to:'2026-12-22',t:'1月終末試験の申込(経営学総論)',s:'KULeDで申込',kind:'due',must:1},
+ {d:'2026-12-17',t:'成績発表(11月終末試験・商品学②スクーリング)',s:'商学総論①・マクロ経済学①の結果',kind:'event'},
+ {d:'2026-12-18',t:'経営学総論 レポート提出の目標',s:'設問1・2 各2,000字。1/17受験には12/22までの提出が必要',kind:'due',must:1},
+ {d:'2026-12-23',to:'2027-01-05',t:'学生センター 年末年始の閉室',s:'問い合わせは12/22まで',kind:'event'},
+ {d:'2027-01-09',t:'WEB学習相談会',s:'任意参加',kind:'event'},
+ {d:'2027-01-14',t:'成績発表(12月終末)',kind:'event'},
+ {d:'2027-01-17',t:'科目終末試験 午前: 経営学総論',kind:'exam',must:1},
+ {d:'2027-01-20',t:'オンデマンド授業 教員への質問の締切',kind:'due'},
+ {d:'2027-01-20',to:'2027-01-26',t:'2月終末試験の申込(経済学)',kind:'due'},
+ {d:'2027-01-24',t:'オンデマンド課題レポートの最終締切',s:'商学総論②・商品学②。合格が単位修了試験の受験条件',kind:'due',must:1},
+ {d:'2027-01-25',to:'2027-01-31',t:'オンデマンド単位修了試験(5件)',s:'英語総合×2・マクロ②・商学総論②・商品学②。各60分、最終日は22:59までに開始',kind:'exam',must:1},
+ {d:'2027-01-26',t:'経済学 レポート提出(2/7受験の条件)',s:'間に合わなければ3/7受験にずらす',kind:'due'},
+ {d:'2027-02-07',t:'科目終末試験 午後: 経済学',kind:'exam'},
+ {d:'2027-02-16',t:'成績発表(1月終末)',kind:'event'},
+ {d:'2027-02-17',t:'成績発表(後期オンデマンド)',s:'商品学①への振替もここで確定',kind:'event'},
+ {d:'2027-02-17',to:'2027-02-23',t:'3月終末試験の申込(化学)',kind:'due'},
+ {d:'2027-03-07',t:'科目終末試験 午後: 化学(科学方法論)',kind:'exam'},
+ {d:'2027-03-11',t:'成績発表(2月終末)',kind:'event'}
+];
+// steps: [名前, 状態] 状態は 1=済み 0=まだ 'u'=未確認
+const SUBJECTS=[
+ {n:'商学総論①',f:'テキスト 2103',st:'レポート提出済み(添削結果は未確認)。11/22に試験',next:'12/17 成績発表',steps:[['レポート提出',1],['添削で合格','u'],['11/22 試験を受験','u'],['合格',0]]},
+ {n:'マクロ経済学①',f:'テキスト 2101',st:'レポート合格。11/22に試験',next:'12/17 成績発表',steps:[['レポート提出',1],['レポート合格',1],['11/22 試験を受験','u'],['合格',0]]},
+ {n:'商品学②',f:'スクーリング 朱先生',st:'1日目・2日目の資料整理済み。予習ノート15回分完成',next:'11/28 3日目 + 試験',steps:[['1日目 11/7',1],['2日目 11/14',1],['予習ノート 第11〜15回',1],['3日目と試験 11/28',0],['合格(12/17)',0]]},
+ {n:'商学総論②',f:'オンデマンド 井田先生',st:'全15回視聴済み。レポート(鯖江の眼鏡フレーム)は11/13に完成',next:'1/25〜31 単位修了試験',steps:[['全15回 視聴',1],['確認テスト全合格','u'],['レポート提出','u'],['レポート合格','u'],['単位修了試験',0]]},
+ {n:'商品学②',f:'オンデマンド 井田先生',st:'全15回視聴・確認テスト完了(11/19)。レポート(偏光サングラス)提出版が11/24に完成',next:'1/24 レポート最終、1/25〜31 試験',steps:[['全15回 視聴',1],['確認テスト',1],['レポート提出','u'],['レポート合格',0],['メディア授業アンケート','u'],['単位修了試験',0]]},
+ {n:'マクロ経済学②',f:'オンデマンド 室田先生',st:'講義資料は全15回ぶん整理済み(11/15)。何回まで見たかは未確認',next:'1/25〜31 単位修了試験',steps:[['講義資料の整理',1],['全15回 視聴','u'],['単位修了試験',0]]},
+ {n:'英語総合A',f:'オンデマンド 大村先生',st:'教科書あり。12月中旬から開始の計画',next:'1/25〜31 単位修了試験',steps:[['教科書の入手',1],['15ユニット 視聴','u'],['単位修了試験',0]]},
+ {n:'英語総合B',f:'オンデマンド 藤井先生',st:'教科書あり。確認テストは初回の点数が成績の30%',next:'1/25〜31 単位修了試験',steps:[['教科書の入手',1],['15ユニット 視聴と確認テスト','u'],['単位修了試験',0]]},
+ {n:'経営学総論',f:'テキスト 2105・4単位',st:'11/23から着手の計画。進み具合は未確認',next:'12/18 レポート提出目標',steps:[['設題確認と参考書の手配','u'],['通読',0],['レポート提出',0],['1/17 試験',0]]},
+ {n:'経済学',f:'テキスト・4単位',st:'1月から着手の計画',next:'1/26 レポート(2/7受験の場合)',steps:[['レポート提出',0],['2/7 試験',0]]},
+ {n:'化学(科学方法論)',f:'テキスト・4単位',st:'2月から着手の計画',next:'3/7 試験',steps:[['レポート提出',0],['3/7 試験',0]]}
+];
+// done: 初期値(1=済み)。g: タブの分類
+const TASKS=[
+ {id:'s3-notes',t:'商品学② 予習ノート第11〜15回を作る',d:'2026-11-27',g:'11月',done:1},
+ {id:'s3-items',t:'11/28の持ち物(学生証・予習ノート・資料③〜⑧・筆記用具)をそろえる',d:'2026-11-27',g:'11月'},
+ {id:'s3-day',t:'商品学② スクーリング3日目と単位修了試験',d:'2026-11-28',g:'11月'},
+ {id:'od-shohin-rep',t:'商品学②(オンデマンド)のレポートに学籍番号を入れてKULeDで提出',d:'2026-12-15',g:'11月'},
+ {id:'od-shoso-rep',t:'商学総論②のレポートを提出したかKULeDで確認',d:'2026-11-30',g:'11月'},
+ {id:'keiei-setsudai',t:'経営学総論の設題をKULeDで確認し、参考書(書籍)を手配',d:'2026-11-30',g:'11月'},
+ {id:'keiei-read',t:'経営学総論 教科書の通読',d:'2026-12-06',g:'12月'},
+ {id:'keiei-q1',t:'経営学総論 設問1(意思決定)の精読とサブノート',d:'2026-12-06',g:'12月'},
+ {id:'keiei-q2',t:'経営学総論 設問2(非営利組織)の精読とサブノート',d:'2026-12-13',g:'12月'},
+ {id:'keiei-draft',t:'経営学総論 レポートの構成と下書き(各2,000字)',d:'2026-12-13',g:'12月'},
+ {id:'keiei-submit',t:'経営学総論 レポートを推敲して提出',d:'2026-12-18',g:'12月'},
+ {id:'macro2-view',t:'マクロ経済学② 視聴を週2〜3本ずつ進める',d:'2027-01-10',g:'12月'},
+ {id:'eng-a',t:'英語総合A(大村) 15ユニットを視聴',d:'2027-01-10',g:'12月'},
+ {id:'eng-b',t:'英語総合B(藤井) 15ユニット。予習してから視聴し、確認テストは1回目から本気で',d:'2027-01-10',g:'12月'},
+ {id:'jan-apply',t:'1月終末試験(経営学総論)をKULeDで申込',d:'2026-12-22',g:'12月'},
+ {id:'grade-1217',t:'12/17の成績発表を確認(商学総論①・マクロ①・商品学②スクーリング)',d:'2026-12-17',g:'12月'},
+ {id:'keiei-exam',t:'経営学総論 想定論点を50分で書く練習 → 1/17受験',d:'2027-01-17',g:'1月'},
+ {id:'od-q',t:'オンデマンドで先生に聞きたいことがあれば質問(1/20まで)',d:'2027-01-20',g:'1月'},
+ {id:'od-survey',t:'商品学②(オンデマンド) メディア授業アンケートに回答',d:'2027-01-24',g:'1月'},
+ {id:'od-exams',t:'単位修了試験5件の日程を決める(1日1〜2件)',d:'2027-01-20',g:'1月'},
+ {id:'od-exam-run',t:'単位修了試験5件を受ける(1/25〜31)',d:'2027-01-31',g:'1月'},
+ {id:'keizai-rep',t:'経済学のレポートを提出(2/7受験なら1/26まで)',d:'2027-01-26',g:'1月'},
+ {id:'feb-apply',t:'2月終末試験(経済学)を申込',d:'2027-01-26',g:'1月'},
+ {id:'keizai-exam',t:'経済学 2/7受験',d:'2027-02-07',g:'2〜3月'},
+ {id:'kagaku-rep',t:'化学のレポートを提出し、3月終末試験を申込(2/17〜23)',d:'2027-02-23',g:'2〜3月'},
+ {id:'kagaku-exam',t:'化学 3/7受験',d:'2027-03-07',g:'2〜3月'}
+];
+// 週ごとの計画。task は TASKS の id
+const WEEKS=[
+ {from:'2026-11-23',to:'2026-11-29',tasks:['s3-notes','s3-items','s3-day','od-shohin-rep','od-shoso-rep','keiei-setsudai'],note:'商品学②(オンデマンド)が予定より早く終わったので、12月前半はその分を経営学総論と英語総合に回せます。'},
+ {from:'2026-11-30',to:'2026-12-06',tasks:['keiei-setsudai','keiei-read','keiei-q1','macro2-view','od-shohin-rep'],note:'計画では12月前半に商品学②(オンデマンド)の視聴でしたが、もう終わっています。'},
+ {from:'2026-12-07',to:'2026-12-13',tasks:['keiei-q2','keiei-draft','macro2-view','eng-a'],note:''},
+ {from:'2026-12-14',to:'2026-12-20',tasks:['keiei-submit','od-shohin-rep','grade-1217','jan-apply','eng-a','eng-b'],note:''},
+ {from:'2026-12-21',to:'2027-01-03',tasks:['jan-apply','eng-a','eng-b','macro2-view'],note:'12/23〜1/5は学生センターが閉室です。'},
+ {from:'2027-01-04',to:'2027-01-10',tasks:['eng-a','eng-b','macro2-view','keiei-exam'],note:''},
+ {from:'2027-01-11',to:'2027-01-17',tasks:['keiei-exam','od-exams'],note:''},
+ {from:'2027-01-18',to:'2027-01-24',tasks:['od-q','od-survey','od-exams','keizai-rep','feb-apply'],note:''},
+ {from:'2027-01-25',to:'2027-01-31',tasks:['od-exam-run','keizai-rep','feb-apply'],note:''},
+ {from:'2027-02-01',to:'2027-02-28',tasks:['keizai-exam','kagaku-rep'],note:''},
+ {from:'2027-03-01',to:'2027-03-31',tasks:['kagaku-exam'],note:''}
+];
+const UNKNOWNS=['11/22の試験(商学総論①・マクロ経済学①)は2科目とも受けられたか','商学総論①のレポートの添削結果(合格・再提出)','商学総論②のレポートを提出したか、確認テストは全部合格か','商品学②(オンデマンド)のレポートを提出したか','マクロ経済学②を何回まで見たか','英語総合A・Bを始めたか','経営学総論に着手したか(設題確認・参考書)'];
+/* ===== 表はここまで ===== */
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const W='日月火水木金土';
+const todayStr=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(new Date());
+const P=s=>{const[y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d)};
+const days=(a,b)=>Math.round((P(b)-P(a))/864e5);
+const md=s=>{const t=new Date(P(s));return `${t.getUTCMonth()+1}/${t.getUTCDate()}(${W[t.getUTCDay()]})`};
+const range=e=>e.to?`${md(e.d)}〜${md(e.to)}`:md(e.d);
+const tY=new Date(P(todayStr));
+document.getElementById('today').textContent=`今日は ${tY.getUTCFullYear()}年${md(todayStr)}`;
+
+let store={};try{store=JSON.parse(localStorage.getItem('kindai-dash')||'{}')}catch(e){}
+const isDone=t=>t.id in store?store[t.id]:!!t.done;
+const save=()=>{try{localStorage.setItem('kindai-dash',JSON.stringify(store))}catch(e){}};
+
+// 直近
+const active=DEADLINES.filter(e=>(e.to||e.d)>=todayStr).sort((a,b)=>a.d.localeCompare(b.d));
+const leftTxt=e=>{const n=days(todayStr,e.d);if(n<=0)return e.to?'期間中':'今日';return n===1?'明日':`あと${n}日`};
+const hero=active.find(e=>e.must)||active[0];
+if(hero){const n=Math.max(0,days(todayStr,hero.d));
+ document.getElementById('hero').innerHTML=`<div class="big num">${n}<small>日</small></div><div><div class="when">次の大事な予定まで</div><div class="what">${esc(hero.t)}</div><div class="when">${esc(range(hero))}${hero.s?' ・ '+esc(hero.s):''}</div></div>`}
+document.getElementById('upcoming').innerHTML=active.slice(0,7).map(e=>{const n=days(todayStr,e.d);
+ return `<li><span class="d num">${esc(md(e.d))}</span><span class="left ${n<=7?'hot':''}">${leftTxt(e)}</span><span class="t">${esc(e.t)}${e.to?`<span class="tag">〜${esc(md(e.to))}</span>`:''}${e.u?'<span class="tag u">未確認</span>':''}${e.must?'<span class="tag must">重要</span>':''}${e.s?`<span class="s">${esc(e.s)}</span>`:''}</span></li>`}).join('');
+
+// 今週
+const byId=Object.fromEntries(TASKS.map(t=>[t.id,t]));
+const wk=WEEKS.find(w=>todayStr>=w.from&&todayStr<=w.to)||WEEKS.find(w=>w.from>todayStr);
+const chkHTML=list=>list.map(t=>`<li class="${isDone(t)?'done':''}"><label><input type="checkbox" data-id="${esc(t.id)}" ${isDone(t)?'checked':''}><span><span class="tx">${esc(t.t)}</span><span class="due num">${esc(md(t.d))}まで</span></span></label></li>`).join('');
+function renderWeek(){
+ if(!wk){document.getElementById('weekList').innerHTML='<li>予定された週はありません。</li>';return}
+ document.getElementById('weekRange').textContent=`${md(wk.from)}〜${md(wk.to)}`;
+ document.getElementById('weekList').innerHTML=chkHTML(wk.tasks.map(i=>byId[i]).filter(Boolean));
+ document.getElementById('weekNote').textContent=wk.note||'';
+}
+
+// 科目
+document.getElementById('subjects').innerHTML=SUBJECTS.map(s=>{const tot=s.steps.length,ok=s.steps.filter(x=>x[1]===1).length,p=Math.round(ok/tot*100),hasU=s.steps.some(x=>x[1]==='u');
+ const stepTxt=s.steps.map(x=>`${x[1]===1?'✓':x[1]==='u'?'?':'・'}${x[0]}`).join(' ');
+ return `<tr><td class="nm">${esc(s.n)}<span>${esc(s.f)}</span></td><td>${esc(s.st)}${hasU?'<span class="tag u">未確認あり</span>':''}<div class="note" style="margin:4px 0 0">${esc(stepTxt)}</div></td><td><span class="pct num">${ok}/${tot} 手順</span><div class="bar ${p===100?'full':''}"><i style="width:${p}%"></i></div></td><td>${esc(s.next)}</td></tr>`}).join('');
+
+// チェックリスト
+const groups=['すべて','未完了',...[...new Set(TASKS.map(t=>t.g))]];
+let cur=(()=>{try{return localStorage.getItem('kindai-tab')||'未完了'}catch(e){return '未完了'}})();
+if(!groups.includes(cur))cur='未完了';
+function renderTasks(){
+ const list=TASKS.filter(t=>cur==='すべて'||(cur==='未完了'?!isDone(t):t.g===cur)).sort((a,b)=>a.d.localeCompare(b.d));
+ document.getElementById('tasks').innerHTML=list.length?chkHTML(list):'<li style="padding:12px 0">このタブのタスクはありません。</li>';
+ const n=TASKS.filter(isDone).length;document.getElementById('prog').textContent=`${TASKS.length}件中 ${n}件 完了`;
+ document.getElementById('tabs').innerHTML=groups.map(g=>`<button type="button" data-g="${esc(g)}" aria-pressed="${g===cur}">${esc(g)}</button>`).join('');
+}
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cur=b.dataset.g;try{localStorage.setItem('kindai-tab',cur)}catch(x){}renderTasks()});
+document.addEventListener('change',e=>{const c=e.target;if(!c.matches('input[data-id]'))return;store[c.dataset.id]=c.checked;save();renderWeek();renderTasks()});
+
+// 年表
+let lastM='';
+document.getElementById('timeline').innerHTML=[...DEADLINES].sort((a,b)=>a.d.localeCompare(b.d)).map(e=>{const m=e.d.slice(0,7);let h='';
+ if(m!==lastM){lastM=m;const[y,mm]=m.split('-');h=`<li class="m">${y}年${Number(mm)}月</li>`}
+ return h+`<li class="${(e.to||e.d)<todayStr?'past':''}"><span class="d num">${esc(md(e.d))}</span><span>${esc(e.t)}${e.to?`(〜${esc(md(e.to))})`:''}${e.kind==='exam'?'<span class="tag must">試験</span>':''}</span></li>`}).join('');
+
+document.getElementById('unknowns').innerHTML=UNKNOWNS.map(u=>`<li>${esc(u)}</li>`).join('');
+
+document.getElementById('copy').addEventListener('click',async()=>{
+ const txt=['【近大 学習状況】'+todayStr,...SUBJECTS.map(s=>`${s.n}(${s.f}): ${s.st} / 次: ${s.next}`),'完了したタスク: '+TASKS.filter(isDone).map(t=>t.t).join('、')].join('\n');
+ try{await navigator.clipboard.writeText(txt);document.getElementById('copied').textContent='コピーしました。チャットに貼れば更新に使えます。'}catch(e){document.getElementById('copied').textContent='コピーできませんでした。'}
+});
+renderWeek();renderTasks();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+}
+</script>
+</body>
+</html>
